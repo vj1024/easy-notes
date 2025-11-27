@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="icon" href="/favicon.ico">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .error {
+            color: red;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="login-container">
+    <h2>文件服务登录</h2>
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="username">用户名:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">密码:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">登录</button>
+    </form>
+    <div id="errorMessage" class="error"></div>
+</div>
+
+<script>
+    // 检查是否已登录
+    async function checkAuth() {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const response = await fetch('/api/check-auth', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authenticated) {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const redirect = urlParams.get('redirect') || '/editor';
+                        window.location.href = redirect;
+                    }
+                }
+            } catch (error) {
+                console.log('Token验证失败');
+            }
+        }
+    }
+
+    checkAuth();
+
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('errorMessage');
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({username, password})
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // 保存 token 到 localStorage
+                localStorage.setItem('token', data.token);
+                // 跳转到文件列表页面
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirect = urlParams.get('redirect') || '/editor';
+                window.location.href = redirect;
+            } else {
+                errorMessage.textContent = data.message;
+            }
+        } catch (error) {
+            errorMessage.textContent = '登录失败，请重试';
+        }
+    });
+
+</script>
+</body>
+</html>
