@@ -12,89 +12,146 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #4895ef;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --background-color: #f8f9fa;
+            --surface-color: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #e0e0e0;
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
+            --error-color: #f72585;
+            --sidebar-bg: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+            --header-bg: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+            --status-bg: linear-gradient(180deg, #e9ecef 0%, #dee2e6 100%);
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
             padding: 0;
             height: 100vh;
             display: flex;
             overflow: hidden;
-            background-color: #f8f9fa;
-            color: #333;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(67, 97, 238, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(58, 12, 163, 0.05) 0%, transparent 20%);
         }
 
         .main-container {
             display: flex;
             width: 100%;
             height: 100%;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 12px;
+            background: var(--surface-color);
         }
 
         .tree-container {
-            width: 25%;
-            min-width: 250px;
+            width: 28%;
+            min-width: 280px;
             max-width: 40%;
             height: 100%;
-            background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+            background: var(--sidebar-bg);
             display: flex;
             flex-direction: column;
             position: relative;
-            border-right: 1px solid #e0e0e0;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            border-right: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            background-clip: padding-box;
         }
 
         .resize-handle {
-            width: 6px;
+            width: 10px;
             height: 100%;
-            background: #e0e0e0;
+            background: transparent;
             cursor: col-resize;
             position: absolute;
-            right: -3px;
+            right: -5px;
             top: 0;
             z-index: 10;
-            transition: all 0.2s ease;
-            border-radius: 3px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .resize-handle::after {
+            content: "⋮";
+            writing-mode: vertical-lr;
+            letter-spacing: 3px;
+            color: var(--text-secondary);
+            opacity: 0.4;
+            font-size: 14px;
         }
 
         .resize-handle:hover {
-            background: #4CAF50;
-            transform: scale(1.1);
+            background: var(--primary-color);
+        }
+
+        .resize-handle:hover::after {
+            opacity: 1;
+            color: white;
         }
 
         .resize-handle.active {
-            background: #2E7D32;
-            transform: scale(1.1);
+            background: var(--secondary-color);
         }
 
         .search-box {
-            padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 18px 15px 15px;
+            border-bottom: 1px solid var(--border-color);
             flex-shrink: 0;
-            background: #fafafa;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
         }
 
         .search-box input {
             width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
+            padding: 12px 20px 12px 45px;
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.3s;
-            background: #fff;
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background: var(--surface-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-secondary);
         }
 
         .search-box input:focus {
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 14px;
         }
 
         #file-tree {
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
-            background: #fff;
+            padding: 8px 5px;
+            background: var(--surface-color);
         }
 
         .editor-container {
@@ -102,69 +159,88 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            min-width: 500px;
-            background: #fff;
+            min-width: 550px;
+            background: var(--surface-color);
+            overflow: hidden;
         }
 
         .file-info-bar {
-            padding: 12px 15px;
-            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
-            border-bottom: 1px solid #dee2e6;
-            font-size: 14px;
-            color: #495057;
-            flex-shrink: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .file-info-bar #file-title {
-            font-weight: 500;
-            color: #495057;
+            display: none;
         }
 
         .editor-content {
             flex: 1;
             display: flex;
+            flex-direction: column;
             overflow: hidden;
+            position: relative;
         }
 
         #vditor-container {
             flex: 1;
-            overflow: hidden;
+            overflow: auto;
             position: relative;
-            background: #fff;
+            background: var(--surface-color);
+            height: 100%; /* 不再需要为顶部文件信息栏预留空间 */
         }
 
         .status-bar {
-            padding: 8px 15px;
-            background: linear-gradient(to bottom, #e9ecef, #dee2e6);
-            border-top: 1px solid #ced4da;
-            font-size: 12px;
-            color: #6c757d;
-            text-align: right;
+            padding: 10px 20px;
+            background: var(--status-bg);
+            border-top: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-secondary);
             flex-shrink: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-family: monospace;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', monospace;
+            backdrop-filter: blur(10px);
+            box-sizing: border-box;
+            height: 40px;
+            max-height: 40px;
+            overflow: hidden;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
-            color: #6c757d;
+            padding: 60px 20px;
+            color: var(--text-secondary);
             font-style: italic;
+            font-size: 16px;
+        }
+
+        .loading::before {
+            content: "";
+            display: block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(67, 97, 238, 0.2);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .error {
-            color: #dc3545;
-            padding: 12px 15px;
-            background: #f8d7da;
-            border-left: 4px solid #dc3545;
-            border-radius: 0 4px 4px 0;
-            margin: 10px 15px;
+            color: var(--error-color);
+            padding: 15px 20px;
+            background: #fdecea;
+            border-left: 4px solid var(--error-color);
+            border-radius: 0 8px 8px 0;
+            margin: 15px 20px;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(247, 37, 133, 0.1);
         }
 
         .no-file-selected {
@@ -172,27 +248,35 @@
             justify-content: center;
             align-items: center;
             height: 100%;
-            color: #6c757d;
-            font-size: 16px;
+            color: var(--text-secondary);
+            font-size: 18px;
             flex-direction: column;
+            text-align: center;
         }
 
         .no-file-selected::before {
             content: "📝";
-            font-size: 48px;
-            margin-bottom: 15px;
-            opacity: 0.6;
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.7;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .search-stats {
-            margin-top: 8px;
-            font-size: 12px;
-            color: #6c757d;
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
             padding: 0 5px;
+            text-align: center;
+            font-style: italic;
         }
 
         #vditor {
             height: 100% !important;
+            max-height: 100%;
         }
 
         .unauthorized {
@@ -201,74 +285,154 @@
             align-items: center;
             height: 100%;
             flex-direction: column;
-            background: #f8f9fa;
+            background: var(--background-color);
+            padding: 20px;
         }
 
         .unauthorized-message {
-            color: #dc3545;
-            font-size: 18px;
-            margin-bottom: 20px;
+            color: var(--error-color);
+            font-size: 20px;
+            margin-bottom: 25px;
             text-align: center;
+            font-weight: 500;
         }
 
         .login-button {
-            background: linear-gradient(to bottom, #4CAF50, #45a049);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
+            padding: 14px 30px;
+            border-radius: 50px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 500;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 600;
         }
 
         .login-button:hover {
-            background: linear-gradient(to bottom, #45a049, #3d8b40);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
         }
 
         .login-button:active {
-            transform: translateY(0);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
         }
 
-        /* jstree 样式定制 */
+        /* JSTree 样式定制 */
         .jstree-default .jstree-clicked {
-            background: #e3f2fd;
-            border-radius: 3px;
-            box-shadow: inset 0 0 1px #999;
+            background: rgba(67, 97, 238, 0.15) !important;
+            border-radius: 4px;
+            box-shadow: inset 0 0 1px var(--primary-color);
         }
 
         .jstree-default .jstree-hovered {
-            background: #f0f8ff;
-            border-radius: 3px;
+            background: rgba(67, 97, 238, 0.1) !important;
+            border-radius: 4px;
+            transition: background 0.2s ease;
         }
 
         .jstree-default .jstree-anchor {
-            border-radius: 3px;
+            border-radius: 4px;
             margin: 1px 0;
+            padding: 0 4px !important;
+            height: 26px;
+            line-height: 26px;
+            font-size: 14px;
+        }
+
+        .jstree-default .jstree-icon {
+            line-height: 26px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .jstree-default .jstree-leaf > .jstree-ocl {
+            cursor: pointer;
+        }
+
+        .jstree-default .jstree-wholerow {
+            height: 26px;
         }
 
         /* 滚动条样式 */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
+            background: var(--text-secondary);
+            border-radius: 10px;
+            transition: background 0.3s;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
+            background: var(--primary-color);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .tree-container {
+                width: 32%;
+                min-width: 250px;
+            }
+
+            .editor-container {
+                min-width: 450px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .tree-container {
+                width: 35%;
+                min-width: 220px;
+            }
+
+            .editor-container {
+                min-width: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                margin: 5px;
+            }
+
+            .tree-container {
+                width: 100%;
+                height: 40%;
+                min-height: 250px;
+            }
+
+            .editor-container {
+                width: 100%;
+                height: 60%;
+                min-height: 300px;
+            }
+
+            .resize-handle {
+                width: 100%;
+                height: 10px;
+                top: -5px;
+                left: 0;
+            }
+
+            .resize-handle::after {
+                writing-mode: horizontal-tb;
+                letter-spacing: 3px;
+            }
         }
     </style>
 </head>
@@ -297,7 +461,8 @@
             </div>
         </div>
         <div class="status-bar" id="status-bar">
-            <div>就绪</div>
+            <div id="file-path-display">未选择文件</div>
+            <div id="status-message">就绪</div>
         </div>
     </div>
 </div>
@@ -599,9 +764,9 @@
                 return;
             }
 
-            $('#file-title').text(`编辑文件: ${filePath}`);
+            $('#file-path-display').text(`文件: ${filePath}`);
             $('#vditor-container').html('<div class="loading">加载文件内容...</div>');
-            $('#status-bar div:last-child').text('加载中...');
+            $('#status-message').text('加载中...');
 
             const url = BASE_URL + `/api/files/${filePath}`;
 
@@ -620,23 +785,23 @@
                 const savedPosition = getFileScrollPosition(filePath);
 
                 initEditor(content, savedPosition);
-                $('#status-bar div:last-child').text('就绪');
+                $('#status-message').text('就绪');
                 isDirty = false;
             }).catch(function (error) {
                 if (error.status !== 401) { // 401错误已经在authAjax中处理
                     $('#vditor-container').html(
                         '<div class="error">加载文件失败: ' + (error.responseText || error.statusText || '未知错误') + '</div>'
                     );
-                    $('#status-bar div:last-child').text('加载失败');
+                    $('#status-message').text('加载失败');
                 }
             });
         }
 
         // 根据路径加载新文件
         function loadNewFileByPath(filePath, fileName) {
-            $('#file-title').text(`编辑文件: ${filePath}`);
+            $('#file-path-display').text(`文件: ${filePath}`);
             $('#vditor-container').html('<div class="loading">加载文件内容...</div>');
-            $('#status-bar div:last-child').text('加载中...');
+            $('#status-message').text('加载中...');
 
             const url = BASE_URL + `/api/files/${filePath}`;
 
@@ -655,14 +820,14 @@
                 const savedPosition = getFileScrollPosition(filePath);
 
                 initEditor(content, savedPosition);
-                $('#status-bar div:last-child').text('就绪');
+                $('#status-message').text('就绪');
                 isDirty = false;
             }).catch(function (error) {
                 if (error.status !== 401) { // 401错误已经在authAjax中处理
                     $('#vditor-container').html(
                         '<div class="error">加载文件失败: ' + (error.responseText || error.statusText || '未知错误') + '</div>'
                     );
-                    $('#status-bar div:last-child').text('加载失败');
+                    $('#status-message').text('加载失败');
                 }
             });
         }
@@ -823,6 +988,10 @@
                 },
                 cache: {
                     enable: false,
+                },
+                theme: {
+                    current: 'classic',
+                    path: 'https://unpkg.com/vditor@3.11.2/dist/css/content-theme',
                 },
                 "outline": {
                     "enable": true,
