@@ -323,19 +323,66 @@
             });
         }
 
+        // 更新搜索统计信息
+        function updateSearchStats(count) {
+            if (currentSearchTerm.length === 0) {
+                $('#search-stats').text('');
+            } else {
+                $('#search-stats').text(`找到 ${count} 个匹配项`);
+            }
+        }
+
         // 初始化jstree
         const tree = $('#file-tree').jstree({
             'core': {
-                'data': {
-                    'url': BASE_URL + '/api/files?list=true',
-                    'dataType': 'json',
-                    'data': function (node) {
-                        return {
-                            'id': node.id === '#' ? 'root' : node.id,
-                            'search': currentSearchTerm || ''
-                        };
-                    },
-                    'headers': getAuthHeaders()
+                'data': function (obj, callback) {
+                    if (currentSearchTerm) {
+                        // 如果有搜索词，使用搜索API
+                        authAjax({
+                            url: BASE_URL + '/api/files',
+                            method: 'GET',
+                            data: { search: currentSearchTerm },
+                            dataType: 'json'
+                        })
+                        .then(function (data) {
+                            if (data.results) {
+                                // 使用搜索结果
+                                callback.call(this, data.results);
+                                // 更新搜索统计信息
+                                updateSearchStats(data.results.length);
+                            } else {
+                                callback.call(this, []);
+                                updateSearchStats(0);
+                            }
+                        })
+                        .catch(function (error) {
+                            if (error !== '未授权' && error.status !== 401) {
+                                console.error('搜索失败:', error);
+                                callback.call(this, []);
+                                updateSearchStats(0);
+                            }
+                        });
+                    } else {
+                        // 否则使用正常的文件列表API
+                        authAjax({
+                            url: BASE_URL + '/api/files?list=true',
+                            method: 'GET',
+                            dataType: 'json'
+                        })
+                        .then(function (data) {
+                            callback.call(this, data);
+                            // 当不是搜索模式时，清空搜索统计
+                            if (currentSearchTerm === '') {
+                                $('#search-stats').text('');
+                            }
+                        })
+                        .catch(function (error) {
+                            if (error !== '未授权' && error.status !== 401) {
+                                console.error('加载文件列表失败:', error);
+                                callback.call(this, []);
+                            }
+                        });
+                    }
                 },
                 'themes': {
                     'responsive': true,
@@ -350,7 +397,7 @@
                     }
                 }
             },
-            'plugins': ['search', 'types'],
+            'plugins': ['types'],
             'types': {
                 'default': {
                     'icon': 'jstree-folder'
@@ -368,26 +415,22 @@
 
             clearTimeout(searchTimeout);
 
-            if (searchTerm.length === 0) {
-                tree.jstree('clear_search');
-                $('#search-stats').text('');
-                return;
-            }
-
-            if (searchTerm.length < 2) {
+            if (searchTerm.length > 0 && searchTerm.length < 2) {
                 $('#search-stats').text('请输入至少2个字符');
                 return;
             }
 
+            // 延迟执行搜索，避免频繁请求
             searchTimeout = setTimeout(() => {
-                tree.jstree('search', searchTerm);
-            }, 300);
-        });
+                // 重新加载树以应用搜索条件
+                tree.jstree(true).refresh();
 
-        // 处理搜索完成事件
-        tree.on('search.jstree', function (e, data) {
-            const matches = data.nodes.length;
-            $('#search-stats').text(`找到 ${matches} 个匹配项`);
+                if (searchTerm.length === 0) {
+                    $('#search-stats').text('');
+                } else {
+                    $('#search-stats').text('搜索中...');
+                }
+            }, 300);
         });
 
         // 处理节点点击事件
@@ -397,16 +440,22 @@
             if (node.type === 'file') {
                 loadFileForEditing(node);
             } else {
-                const filePath = buildFilePath(node);
-                $('#file-title').text(`文件夹: ${filePath}`);
-                $('#vditor-container').html('<div class="no-file-selected">请选择文件进行编辑</div>');
-                if (vditor) {
-                    vditor.destroy();
-                    vditor = null;
+                // 对于搜索结果，我们只处理文件，不处理文件夹
+                if (node.path) {
+                    // 这是一个搜索结果节点，直接加载文件
+                    loadFileByPath(node.path, node.text);
+                } else {
+                    const filePath = buildFilePath(node);
+                    $('#file-title').text(`文件夹: ${filePath}`);
+                    $('#vditor-container').html('<div class="no-file-selected">请选择文件进行编辑</div>');
+                    if (vditor) {
+                        vditor.destroy();
+                        vditor = null;
+                    }
+                    clearSaveInterval();
+                    currentFile = null;
+                    isDirty = false;
                 }
-                clearSaveInterval();
-                currentFile = null;
-                isDirty = false;
             }
         });
 
@@ -426,6 +475,25 @@
                 }
             } else {
                 loadNewFile(node);
+            }
+        }
+
+        // 根据路径加载文件
+        function loadFileByPath(filePath, fileName) {
+            if (!checkAuth()) return;
+
+            if (isDirty && currentFile && vditor) {
+                if (confirm('当前文件有未保存的更改，是否先保存？')) {
+                    saveCurrentFile().then(() => {
+                        loadNewFileByPath(filePath, fileName);
+                    }).catch(() => {
+                        loadNewFileByPath(filePath, fileName);
+                    });
+                } else {
+                    loadNewFileByPath(filePath, fileName);
+                }
+            } else {
+                loadNewFileByPath(filePath, fileName);
             }
         }
 
@@ -466,6 +534,47 @@
                     $('#status-bar div:last-child').text('加载失败');
                 }
             });
+        }
+
+        // 根据路径加载新文件
+        function loadNewFileByPath(filePath, fileName) {
+            $('#file-title').text(`编辑文件: ${filePath}`);
+            $('#vditor-container').html('<div class="loading">加载文件内容...</div>');
+            $('#status-bar div:last-child').text('加载中...');
+
+            const url = BASE_URL + `/api/files/${filePath}`;
+
+            authAjax({
+                url: url,
+                method: 'GET',
+                dataType: 'text'
+            }).then(function (content) {
+                currentFile = {
+                    id: 'search-' + filePath,
+                    name: fileName,
+                    path: filePath
+                };
+
+                initEditor(content);
+                $('#status-bar div:last-child').text('就绪');
+                isDirty = false;
+            }).catch(function (error) {
+                if (error.status !== 401) { // 401错误已经在authAjax中处理
+                    $('#vditor-container').html(
+                        '<div class="error">加载文件失败: ' + (error.responseText || error.statusText || '未知错误') + '</div>'
+                    );
+                    $('#status-bar div:last-child').text('加载失败');
+                }
+            });
+        }
+
+        // 更新搜索统计信息
+        function updateSearchStats(count) {
+            if (currentSearchTerm.length === 0) {
+                $('#search-stats').text('');
+            } else {
+                $('#search-stats').text(`找到 ${count} 个匹配项`);
+            }
         }
 
         // 构建文件路径

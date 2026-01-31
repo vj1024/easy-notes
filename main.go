@@ -39,11 +39,21 @@ type FileInfo struct {
 	Extension string    `json:"extension,omitempty"`
 }
 
+type SearchResult struct {
+	ID       string    `json:"id"`
+	Text     string    `json:"text"`
+	Type     string    `json:"type"`
+	Icon     string    `json:"icon"`
+	Path     string    `json:"path"`
+	Children []*SearchResult `json:"children,omitempty"`
+}
+
 type DirectoryResponse struct {
-	Path    string     `json:"path"`
-	Files   []FileInfo `json:"files"`
-	Success bool       `json:"success"`
-	Message string     `json:"message,omitempty"`
+	Path    string          `json:"path"`
+	Files   []FileInfo      `json:"files"`
+	Results []*SearchResult `json:"results,omitempty"`
+	Success bool            `json:"success"`
+	Message string          `json:"message,omitempty"`
 }
 
 type LoginRequest struct {
@@ -351,6 +361,15 @@ func ErrorRecovery() gin.HandlerFunc {
 // 文件操作处理函数（保持不变）
 func handleFilesRequest(c *gin.Context) {
 	list := c.DefaultQuery("list", "false")
+	search := c.Query("search") // 使用Query而不是DefaultQuery
+
+	fmt.Printf("List param: '%s', Search param: '%s'\n", list, search) // 调试日志
+
+	if search != "" {
+		fmt.Printf("Performing search for: '%s'\n", search)
+		performSearch(c, baseDir, search)
+		return
+	}
 
 	if list == "true" {
 		listDirectory(c, baseDir)
@@ -486,6 +505,77 @@ func serveFile(c *gin.Context, fullPath, requestPath string) {
 	}
 
 	c.File(fullPath)
+}
+
+func performSearch(c *gin.Context, rootPath, searchTerm string) {
+	var results []*SearchResult
+
+	err := filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 跳过目录和隐藏文件
+		if info.IsDir() || strings.HasPrefix(info.Name(), ".") {
+			return nil
+		}
+
+		// 检查文件名是否包含搜索词
+		matched := strings.Contains(strings.ToLower(info.Name()), strings.ToLower(searchTerm))
+
+		// 如果文件名不匹配，再检查文件内容
+		if !matched {
+			content, err := os.ReadFile(path)
+			if err != nil {
+				// 如果无法读取文件内容，跳过
+				return nil
+			}
+
+			// 检查文件内容是否包含搜索词
+			if strings.Contains(strings.ToLower(string(content)), strings.ToLower(searchTerm)) {
+				matched = true
+			}
+		}
+
+		// 如果匹配，添加到结果中
+		if matched {
+			relPath, err := filepath.Rel(rootPath, path)
+			if err != nil {
+				return err
+			}
+
+			// 构建路径，确保使用正斜杠
+			relPath = filepath.ToSlash(relPath)
+
+			// 创建搜索结果节点
+			result := &SearchResult{
+				ID:   "search-" + filepath.ToSlash(relPath),
+				Text: info.Name(),
+				Type: "file",
+				Icon: "jstree-file",
+				Path: relPath,
+			}
+
+			results = append(results, result)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, DirectoryResponse{
+			Success: false,
+			Message: "搜索过程中发生错误: " + err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, DirectoryResponse{
+		Path:    "",
+		Results: results,
+		Success: true,
+		Message: fmt.Sprintf("找到 %d 个匹配项", len(results)),
+	})
 }
 
 func uploadFile(c *gin.Context, fullPath, requestPath string) {
