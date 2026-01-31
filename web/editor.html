@@ -529,7 +529,10 @@
                     path: filePath
                 };
 
-                initEditor(content);
+                // 从localStorage获取上次的滚动位置
+                const savedPosition = getFileScrollPosition(filePath);
+
+                initEditor(content, savedPosition);
                 $('#status-bar div:last-child').text('就绪');
                 isDirty = false;
             }).catch(function (error) {
@@ -561,7 +564,10 @@
                     path: filePath
                 };
 
-                initEditor(content);
+                // 从localStorage获取上次的滚动位置
+                const savedPosition = getFileScrollPosition(filePath);
+
+                initEditor(content, savedPosition);
                 $('#status-bar div:last-child').text('就绪');
                 isDirty = false;
             }).catch(function (error) {
@@ -610,8 +616,64 @@
             return pathParts.join('/');
         }
 
+        // 保存文件滚动位置到localStorage
+        function saveFileScrollPosition(filePath) {
+            if (!vditor || !filePath) return;
+
+            try {
+                const positionData = {
+                    previewScrollTop: 0,
+                    irScrollTop: 0,
+                    svScrollTop: 0,
+                    wysiwygScrollTop: 0,
+                    timestamp: Date.now()
+                };
+
+                // 获取各种模式下的滚动位置
+                if (vditor.vditor && vditor.vditor.preview && vditor.vditor.preview.element) {
+                    positionData.previewScrollTop = vditor.vditor.preview.element.scrollTop;
+                }
+
+                if (vditor.vditor && vditor.vditor.ir && vditor.vditor.ir.element) {
+                    positionData.irScrollTop = vditor.vditor.ir.element.scrollTop;
+                }
+
+                if (vditor.vditor && vditor.vditor.sv && vditor.vditor.sv.element) {
+                    positionData.svScrollTop = vditor.vditor.sv.element.scrollTop;
+                }
+
+                if (vditor.vditor && vditor.vditor.wysiwyg && vditor.vditor.wysiwyg.element) {
+                    positionData.wysiwygScrollTop = vditor.vditor.wysiwyg.element.scrollTop;
+                }
+
+                // 存储到localStorage
+                const key = `file_scroll_position_${filePath}`;
+                localStorage.setItem(key, JSON.stringify(positionData));
+            } catch (e) {
+                console.warn('无法保存滚动位置:', e);
+            }
+        }
+
+        // 从localStorage获取文件滚动位置
+        function getFileScrollPosition(filePath) {
+            if (!filePath) return null;
+
+            try {
+                const key = `file_scroll_position_${filePath}`;
+                const stored = localStorage.getItem(key);
+
+                if (stored) {
+                    return JSON.parse(stored);
+                }
+            } catch (e) {
+                console.warn('无法获取滚动位置:', e);
+            }
+
+            return null;
+        }
+
         // 初始化Vditor编辑器
-        function initEditor(content) {
+        function initEditor(content, savedPosition = null) {
             if (vditor) {
                 vditor.destroy();
                 vditor = null;
@@ -678,15 +740,67 @@
                         isDirty = true;
                         $('#status-bar div:last-child').text('已修改 (未保存)');
                     }
+
+                    // 保存滚动位置
+                    if (currentFile && currentFile.path) {
+                        saveFileScrollPosition(currentFile.path);
+                    }
                 },
                 focus: function (value) {
                     startAutoSave();
                 },
                 blur: function (value) {
                     clearSaveInterval();
+
+                    // 保存滚动位置
+                    if (currentFile && currentFile.path) {
+                        saveFileScrollPosition(currentFile.path);
+                    }
                 },
                 after: function () {
                     startAutoSave();
+
+                    // 如果有保存的位置，恢复滚动位置
+                    if (savedPosition && vditor) {
+                        setTimeout(() => {
+                            try {
+                                // 尝试滚动到保存的位置
+                                const previewElement = vditor.vditor.preview.element;
+                                if (previewElement) {
+                                    previewElement.scrollTop = savedPosition.previewScrollTop || 0;
+                                }
+
+                                // 对于编辑模式，滚动到指定行
+                                const irElement = vditor.vditor.ir.element;
+                                if (irElement && savedPosition.irScrollTop) {
+                                    irElement.scrollTop = savedPosition.irScrollTop;
+                                }
+
+                                const svElement = vditor.vditor.sv.element;
+                                if (svElement && savedPosition.svScrollTop) {
+                                    svElement.scrollTop = savedPosition.svScrollTop;
+                                }
+
+                                const wysiwygElement = vditor.vditor.wysiwyg.element;
+                                if (wysiwygElement && savedPosition.wysiwygScrollTop) {
+                                    wysiwygElement.scrollTop = savedPosition.wysiwygScrollTop;
+                                }
+                            } catch (e) {
+                                console.warn('无法恢复滚动位置:', e);
+                            }
+                        }, 100);
+                    }
+
+                    // 添加滚动监听器
+                    if (window.addScrollListeners) {
+                        window.addScrollListeners();
+                    }
+                },
+                // 监听滚动事件以保存滚动位置
+                resize: function() {
+                    if (currentFile && currentFile.path) {
+                        saveFileScrollPosition(currentFile.path);
+                    }
                 }
             });
 
@@ -811,14 +925,60 @@
             }
         });
 
-        // 窗口关闭前提示保存
+        // 监听编辑器区域的滚动事件以保存滚动位置
+        function setupScrollListener() {
+            // 使用节流函数减少保存频率
+            let scrollTimeout;
+
+            // 由于Vditor有自己的滚动容器，我们需要在编辑器初始化后添加滚动监听器
+            function addScrollListeners() {
+                if (!vditor) return;
+
+                // 获取Vditor的各种模式的滚动容器
+                const elementsToWatch = [
+                    vditor.vditor?.preview?.element,
+                    vditor.vditor?.ir?.element,
+                    vditor.vditor?.sv?.element,
+                    vditor.vditor?.wysiwyg?.element
+                ];
+
+                elementsToWatch.forEach(element => {
+                    if (element) {
+                        element.addEventListener('scroll', function() {
+                            if (scrollTimeout) {
+                                clearTimeout(scrollTimeout);
+                            }
+
+                            scrollTimeout = setTimeout(() => {
+                                if (currentFile && currentFile.path) {
+                                    saveFileScrollPosition(currentFile.path);
+                                }
+                            }, 500); // 每500毫秒保存一次
+                        }, { passive: true });
+                    }
+                });
+            }
+
+            // 暴露给外部调用
+            window.addScrollListeners = addScrollListeners;
+        }
+
+        // 窗口关闭前保存滚动位置和提示保存
         window.addEventListener('beforeunload', function (e) {
+            // 保存当前文件的滚动位置
+            if (currentFile && currentFile.path) {
+                saveFileScrollPosition(currentFile.path);
+            }
+
             if (isDirty) {
                 e.preventDefault();
                 e.returnValue = '您有未保存的更改，确定要离开吗？';
                 return '您有未保存的更改，确定要离开吗？';
             }
         });
+
+        // 初始化滚动监听器
+        setupScrollListener();
 
         // 处理窗口大小变化
         $(window).on('resize', function () {
