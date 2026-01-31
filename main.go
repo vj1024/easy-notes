@@ -40,11 +40,12 @@ type FileInfo struct {
 }
 
 type SearchResult struct {
-	ID       string    `json:"id"`
-	Text     string    `json:"text"`
-	Type     string    `json:"type"`
-	Icon     string    `json:"icon"`
-	Path     string    `json:"path"`
+	ID       string      `json:"id"`
+	Text     string      `json:"text"`
+	Type     string      `json:"type"`
+	Icon     string      `json:"icon"`
+	Path     string      `json:"path"`
+	State    *NodeState  `json:"state,omitempty"`
 	Children []*SearchResult `json:"children,omitempty"`
 }
 
@@ -508,7 +509,14 @@ func serveFile(c *gin.Context, fullPath, requestPath string) {
 }
 
 func performSearch(c *gin.Context, rootPath, searchTerm string) {
-	var results []*SearchResult
+	// 使用 map 来构建树形结构
+	rootNode := &SearchResult{
+		ID:   "search-root",
+		Text: "搜索结果",
+		Type: "folder",
+		Icon: "jstree-folder",
+		State: &NodeState{Opened: true}, // 默认展开
+	}
 
 	err := filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -537,7 +545,7 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 			}
 		}
 
-		// 如果匹配，添加到结果中
+		// 如果匹配，添加到树形结构中
 		if matched {
 			relPath, err := filepath.Rel(rootPath, path)
 			if err != nil {
@@ -547,16 +555,56 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 			// 构建路径，确保使用正斜杠
 			relPath = filepath.ToSlash(relPath)
 
-			// 创建搜索结果节点
-			result := &SearchResult{
-				ID:   "search-" + filepath.ToSlash(relPath),
+			// 分割路径，构建树形结构
+			parts := strings.Split(relPath, "/")
+
+			currentNode := rootNode
+			// 遍历路径的每个部分，创建目录节点
+			for i, part := range parts {
+				if i == len(parts)-1 { // 最后一个是文件名
+					break
+				}
+
+				// 查找或创建目录节点
+				childFound := false
+				for _, child := range currentNode.Children {
+					if child.Text == part {
+						currentNode = child
+						childFound = true
+						break
+					}
+				}
+
+				if !childFound {
+					newDirNode := &SearchResult{
+						ID:   "search-dir-" + filepath.Join(parts[:i+1]...),
+						Text: part,
+						Type: "folder",
+						Icon: "jstree-folder",
+						Path: filepath.Join(parts[:i+1]...),
+						State: &NodeState{Opened: true}, // 展开目录节点
+					}
+					currentNode.Children = append(currentNode.Children, newDirNode)
+					currentNode = newDirNode
+				} else {
+					// 如果节点已存在，确保它是展开的
+					if currentNode.State == nil {
+						currentNode.State = &NodeState{Opened: true}
+					} else {
+						currentNode.State.Opened = true
+					}
+				}
+			}
+
+			// 添加文件节点到最后一个目录
+			fileNode := &SearchResult{
+				ID:   "search-file-" + relPath,
 				Text: info.Name(),
 				Type: "file",
 				Icon: "jstree-file",
 				Path: relPath,
 			}
-
-			results = append(results, result)
+			currentNode.Children = append(currentNode.Children, fileNode)
 		}
 
 		return nil
@@ -570,12 +618,31 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 		return
 	}
 
+	// 如果根节点没有任何子节点，返回空数组
+	var results []*SearchResult
+	if len(rootNode.Children) > 0 {
+		results = rootNode.Children
+	}
+
 	c.JSON(http.StatusOK, DirectoryResponse{
 		Path:    "",
 		Results: results,
 		Success: true,
-		Message: fmt.Sprintf("找到 %d 个匹配项", len(results)),
+		Message: fmt.Sprintf("找到 %d 个匹配项", countSearchResults(results)),
 	})
+}
+
+// 辅助函数：计算搜索结果中的文件数量
+func countSearchResults(results []*SearchResult) int {
+	count := 0
+	for _, result := range results {
+		if result.Type == "file" {
+			count++
+		} else if len(result.Children) > 0 {
+			count += countSearchResults(result.Children)
+		}
+	}
+	return count
 }
 
 func uploadFile(c *gin.Context, fullPath, requestPath string) {

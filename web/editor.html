@@ -350,6 +350,11 @@
                                 callback.call(this, data.results);
                                 // 更新搜索统计信息
                                 updateSearchStats(data.results.length);
+
+                                // 在数据加载完成后展开所有节点
+                                setTimeout(function() {
+                                    tree.jstree(true).open_all();
+                                }, 100);
                             } else {
                                 callback.call(this, []);
                                 updateSearchStats(0);
