@@ -420,8 +420,9 @@
 
             clearTimeout(searchTimeout);
 
-            if (searchTerm.length > 0 && searchTerm.length < 2) {
-                $('#search-stats').text('请输入至少2个字符');
+            // 允许空格分隔的多个关键字，只要总长度大于0即可
+            if (searchTerm.length > 0 && searchTerm.replace(/\s+/g, '').length < 2) {
+                $('#search-stats').text('请输入至少2个有效字符');
                 return;
             }
 

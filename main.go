@@ -509,6 +509,18 @@ func serveFile(c *gin.Context, fullPath, requestPath string) {
 }
 
 func performSearch(c *gin.Context, rootPath, searchTerm string) {
+	// 将搜索词按空格分割为多个关键字
+	keywords := strings.Fields(searchTerm)
+	if len(keywords) == 0 {
+		c.JSON(http.StatusOK, DirectoryResponse{
+			Path:    "",
+			Results: []*SearchResult{},
+			Success: true,
+			Message: "找到 0 个匹配项",
+		})
+		return
+	}
+
 	// 使用 map 来构建树形结构
 	rootNode := &SearchResult{
 		ID:   "search-root",
@@ -528,24 +540,38 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 			return nil
 		}
 
-		// 检查文件名是否包含搜索词
-		matched := strings.Contains(strings.ToLower(info.Name()), strings.ToLower(searchTerm))
+		// 检查文件名是否包含所有关键字
+		filenameMatched := true
+		for _, keyword := range keywords {
+			if !strings.Contains(strings.ToLower(info.Name()), strings.ToLower(keyword)) {
+				filenameMatched = false
+				break
+			}
+		}
 
-		// 如果文件名不匹配，再检查文件内容
-		if !matched {
+		// 如果文件名不匹配所有关键字，则检查文件内容
+		contentMatched := false
+		if !filenameMatched {
 			content, err := os.ReadFile(path)
 			if err != nil {
 				// 如果无法读取文件内容，跳过
 				return nil
 			}
 
-			// 检查文件内容是否包含搜索词
-			if strings.Contains(strings.ToLower(string(content)), strings.ToLower(searchTerm)) {
-				matched = true
+			// 检查文件内容是否包含所有关键字
+			contentStr := strings.ToLower(string(content))
+			contentMatched = true
+			for _, keyword := range keywords {
+				if !strings.Contains(contentStr, strings.ToLower(keyword)) {
+					contentMatched = false
+					break
+				}
 			}
 		}
 
-		// 如果匹配，添加到树形结构中
+		// 如果文件名或内容匹配所有关键字，添加到树形结构中
+		matched := filenameMatched || contentMatched
+
 		if matched {
 			relPath, err := filepath.Rel(rootPath, path)
 			if err != nil {
