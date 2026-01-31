@@ -40,12 +40,12 @@ type FileInfo struct {
 }
 
 type SearchResult struct {
-	ID       string      `json:"id"`
-	Text     string      `json:"text"`
-	Type     string      `json:"type"`
-	Icon     string      `json:"icon"`
-	Path     string      `json:"path"`
-	State    *NodeState  `json:"state,omitempty"`
+	ID       string          `json:"id"`
+	Text     string          `json:"text"`
+	Type     string          `json:"type"`
+	Icon     string          `json:"icon"`
+	Path     string          `json:"path"`
+	State    *NodeState      `json:"state,omitempty"`
 	Children []*SearchResult `json:"children,omitempty"`
 }
 
@@ -364,10 +364,7 @@ func handleFilesRequest(c *gin.Context) {
 	list := c.DefaultQuery("list", "false")
 	search := c.Query("search") // 使用Query而不是DefaultQuery
 
-	fmt.Printf("List param: '%s', Search param: '%s'\n", list, search) // 调试日志
-
 	if search != "" {
-		fmt.Printf("Performing search for: '%s'\n", search)
 		performSearch(c, baseDir, search)
 		return
 	}
@@ -523,10 +520,10 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 
 	// 使用 map 来构建树形结构
 	rootNode := &SearchResult{
-		ID:   "search-root",
-		Text: "搜索结果",
-		Type: "folder",
-		Icon: "jstree-folder",
+		ID:    "search-root",
+		Text:  "搜索结果",
+		Type:  "folder",
+		Icon:  "jstree-folder",
 		State: &NodeState{Opened: true}, // 默认展开
 	}
 
@@ -603,11 +600,11 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 
 				if !childFound {
 					newDirNode := &SearchResult{
-						ID:   "search-dir-" + filepath.Join(parts[:i+1]...),
-						Text: part,
-						Type: "folder",
-						Icon: "jstree-folder",
-						Path: filepath.Join(parts[:i+1]...),
+						ID:    "search-dir-" + filepath.Join(parts[:i+1]...),
+						Text:  part,
+						Type:  "folder",
+						Icon:  "jstree-folder",
+						Path:  filepath.Join(parts[:i+1]...),
 						State: &NodeState{Opened: true}, // 展开目录节点
 					}
 					currentNode.Children = append(currentNode.Children, newDirNode)
