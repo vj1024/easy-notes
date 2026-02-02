@@ -56,9 +56,9 @@
         }
 
         .tree-container {
-            width: 28%;
-            min-width: 280px;
-            max-width: 40%;
+            width: 15%;
+            min-width: 200px;
+            max-width: 35%;
             height: 100%;
             background: var(--sidebar-bg);
             display: flex;
@@ -152,6 +152,7 @@
             overflow-y: auto;
             padding: 8px 5px;
             background: var(--surface-color);
+            height: calc(100% - 60px); /* Account for search box height */
         }
 
         .editor-container {
@@ -181,11 +182,11 @@
             overflow: auto;
             position: relative;
             background: var(--surface-color);
-            height: 100%; /* 不再需要为顶部文件信息栏预留空间 */
+            height: calc(100% - 40px); /* Account for the status bar height */
         }
 
         .status-bar {
-            padding: 10px 20px;
+            padding: 10px 10px 25px 10px;
             background: var(--status-bg);
             border-top: 1px solid var(--border-color);
             font-size: 13px;
@@ -200,11 +201,6 @@
             height: 40px;
             max-height: 40px;
             overflow: hidden;
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 10;
         }
 
         .loading {
@@ -344,6 +340,12 @@
             height: 26px;
             line-height: 26px;
             font-size: 14px;
+            cursor: pointer; /* 确保光标样式正确 */
+        }
+
+        /* 防止悬停时显示链接提示 */
+        .jstree-anchor {
+            pointer-events: auto !important;
         }
 
         .jstree-default .jstree-icon {
@@ -606,6 +608,8 @@
                                 // 在数据加载完成后展开所有节点
                                 setTimeout(function() {
                                     tree.jstree(true).open_all();
+                                    // 移除所有链接的href属性
+                                    $('#file-tree a').removeAttr('href');
                                 }, 100);
                             } else {
                                 callback.call(this, []);
@@ -632,6 +636,11 @@
                             if (currentSearchTerm === '') {
                                 $('#search-stats').text('');
                             }
+
+                            // 数据加载完成后移除所有链接的href属性
+                            setTimeout(function() {
+                                $('#file-tree a').removeAttr('href');
+                            }, 100);
                         })
                         .catch(function (error) {
                             if (error !== '未授权' && error.status !== 401) {
@@ -652,9 +661,11 @@
                     } else {
                         $('#file-tree').html('<div class="error">加载文件列表失败: ' + error + '</div>');
                     }
-                }
+                },
+                'check_callback': true,
+                'force_text': true  // This prevents HTML injection and potential href issues that cause tooltips
             },
-            'plugins': ['types'],
+            'plugins': ['types', 'wholerow'],
             'types': {
                 'default': {
                     'icon': 'jstree-folder'
@@ -663,6 +674,25 @@
                     'icon': 'jstree-file'
                 }
             }
+        });
+
+        // jstree准备就绪后移除所有链接的href属性
+        $('#file-tree').on('ready.jstree', function() {
+            $('#file-tree a').removeAttr('href');
+        });
+
+        // 当节点打开时移除新增链接的href属性
+        $('#file-tree').on('after_open.jstree', function() {
+            setTimeout(function() {
+                $('#file-tree a').removeAttr('href');
+            }, 50);
+        });
+
+        // 当节点关闭时也需要处理
+        $('#file-tree').on('after_close.jstree', function() {
+            setTimeout(function() {
+                $('#file-tree a').removeAttr('href');
+            }, 50);
         });
 
         // 搜索功能
