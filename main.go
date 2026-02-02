@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -141,6 +142,11 @@ func getEnv(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+// 生成带过滤和排序的JsTree
+func GenerateJsTreeWithFilterAndSort(rootPath string) ([]*JsTreeNode, error) {
+	return GenerateJsTree(rootPath)
 }
 
 // 文件编辑页面
@@ -470,7 +476,7 @@ func handleFileUpload(c *gin.Context) {
 }
 
 func listDirectory(c *gin.Context, dirPath string) {
-	tree, err := GenerateJsTree(dirPath)
+	tree, err := GenerateJsTreeWithFilterAndSort(dirPath)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, DirectoryResponse{
 			Success: false,
@@ -534,6 +540,11 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 
 		// 跳过目录和隐藏文件
 		if info.IsDir() || strings.HasPrefix(info.Name(), ".") {
+			return nil
+		}
+
+		// 只搜索支持的文本格式文件
+		if !isSupportedTextFile(info.Name()) {
 			return nil
 		}
 
@@ -644,6 +655,8 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 	// 如果根节点没有任何子节点，返回空数组
 	var results []*SearchResult
 	if len(rootNode.Children) > 0 {
+		// 对搜索结果进行排序
+		sortSearchResults(rootNode.Children)
 		results = rootNode.Children
 	}
 
@@ -653,6 +666,26 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 		Success: true,
 		Message: fmt.Sprintf("找到 %d 个匹配项", countSearchResults(results)),
 	})
+}
+
+// 按类型和名称排序搜索结果
+func sortSearchResults(nodes []*SearchResult) {
+	// 先排序：文件夹在前，文件在后；同类型按名称排序
+	sort.Slice(nodes, func(i, j int) bool {
+		// 如果类型不同，文件夹在前
+		if nodes[i].Type != nodes[j].Type {
+			return nodes[i].Type == "folder"
+		}
+		// 类型相同，按名称排序（忽略大小写）
+		return strings.ToLower(nodes[i].Text) < strings.ToLower(nodes[j].Text)
+	})
+
+	// 递归排序子节点
+	for _, node := range nodes {
+		if node.Children != nil && len(node.Children) > 0 {
+			sortSearchResults(node.Children)
+		}
+	}
 }
 
 // 辅助函数：计算搜索结果中的文件数量
