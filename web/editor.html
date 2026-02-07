@@ -592,6 +592,13 @@
                 padding: 0 2px !important;
             }
 
+            /* 自定义图标样式 */
+            .jstree-default .jstree-themeicon {
+                font-size: 8px;
+                width: 8px;
+                height: 8px;
+            }
+
             .status-bar {
                 padding: 6px 6px 12px 6px !important;
                 font-size: 11px !important;
@@ -611,6 +618,7 @@
             .file-info-bar {
                 display: none !important;
             }
+
         }
 
         /* Very small screens */
@@ -1537,7 +1545,7 @@
         });
 
         // Handle orientation change for mobile devices
-        $(window).on('orientationchange', function() {
+        $(window).on('orientationchange', function () {
             setTimeout(() => {
                 if (window.innerWidth <= 576) {
                     // 在移动端调整编辑器高度
@@ -1565,7 +1573,7 @@
             }
 
             // 切换侧边栏显示/隐藏
-            sidebarToggle.addEventListener('click', function(e) {
+            sidebarToggle.addEventListener('click', function (e) {
                 e.stopPropagation();
                 treeContainer.classList.add('sidebar-open');
                 backdrop.classList.add('visible');
@@ -1581,7 +1589,7 @@
             });
 
             // 点击遮罩层关闭侧边栏
-            backdrop.addEventListener('click', function() {
+            backdrop.addEventListener('click', function () {
                 treeContainer.classList.remove('sidebar-open');
                 backdrop.classList.remove('visible');
 
@@ -1594,7 +1602,7 @@
             });
 
             // 点击文件树内的元素后，如果是文件则关闭侧边栏，如果是文件夹则不关闭（全屏模式下更及时响应）
-            $('#file-tree').on('click', 'a', function(event) {
+            $('#file-tree').on('click', 'a', function (event) {
                 if (window.innerWidth <= 576) {
                     // 获取被点击的节点
                     const nodeId = $(this).closest('li').attr('id');
@@ -1618,7 +1626,7 @@
             });
 
             // 处理窗口大小变化 - 如果从移动视图切换到桌面视图，确保侧边栏关闭
-            $(window).on('resize', function() {
+            $(window).on('resize', function () {
                 if (window.innerWidth > 576) {
                     treeContainer.classList.remove('sidebar-open');
                     backdrop.classList.remove('visible');
