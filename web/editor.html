@@ -1593,19 +1593,27 @@
                 }, 350);
             });
 
-            // 点击文件树内的元素后立即关闭侧边栏（全屏模式下更及时响应）
-            $('#file-tree').on('click', 'a', function() {
+            // 点击文件树内的元素后，如果是文件则关闭侧边栏，如果是文件夹则不关闭（全屏模式下更及时响应）
+            $('#file-tree').on('click', 'a', function(event) {
                 if (window.innerWidth <= 576) {
-                    // 关闭侧边栏
-                    treeContainer.classList.remove('sidebar-open');
-                    backdrop.classList.remove('visible');
+                    // 获取被点击的节点
+                    const nodeId = $(this).closest('li').attr('id');
+                    const node = tree.jstree('get_node', nodeId);
 
-                    // 延迟调整编辑器大小以确保动画完成
-                    setTimeout(() => {
-                        if (vditor) {
-                            vditor.resize();
-                        }
-                    }, 350); // 稍长于过渡动画的时间
+                    // 只有在点击文件时才关闭侧边栏
+                    if (node && node.type === 'file') {
+                        // 关闭侧边栏
+                        treeContainer.classList.remove('sidebar-open');
+                        backdrop.classList.remove('visible');
+
+                        // 延迟调整编辑器大小以确保动画完成
+                        setTimeout(() => {
+                            if (vditor) {
+                                vditor.resize();
+                            }
+                        }, 350); // 稍长于过渡动画的时间
+                    }
+                    // 如果是文件夹，则不关闭侧边栏，允许展开操作
                 }
             });
 
