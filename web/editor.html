@@ -39,9 +39,8 @@
             overflow: hidden;
             background-color: var(--background-color);
             color: var(--text-primary);
-            background-image:
-                radial-gradient(circle at 10% 20%, rgba(67, 97, 238, 0.05) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(58, 12, 163, 0.05) 0%, transparent 20%);
+            background-image: radial-gradient(circle at 10% 20%, rgba(67, 97, 238, 0.05) 0%, transparent 20%),
+            radial-gradient(circle at 90% 80%, rgba(58, 12, 163, 0.05) 0%, transparent 20%);
         }
 
         .main-container {
@@ -123,7 +122,7 @@
             outline: none;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             background: var(--surface-color);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             position: relative;
         }
 
@@ -186,7 +185,7 @@
         }
 
         .status-bar {
-            padding: 10px 10px 25px 10px;
+            padding: 10px 10px 20px 10px;
             background: var(--status-bg);
             border-top: 1px solid var(--border-color);
             font-size: 13px;
@@ -224,8 +223,12 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .error {
@@ -595,34 +598,34 @@
                         authAjax({
                             url: BASE_URL + '/api/files',
                             method: 'GET',
-                            data: { search: currentSearchTerm },
+                            data: {search: currentSearchTerm},
                             dataType: 'json'
                         })
-                        .then(function (data) {
-                            if (data.results) {
-                                // 使用搜索结果
-                                callback.call(this, data.results);
-                                // 更新搜索统计信息
-                                updateSearchStats(data.results.length);
+                            .then(function (data) {
+                                if (data.results) {
+                                    // 使用搜索结果
+                                    callback.call(this, data.results);
+                                    // 更新搜索统计信息
+                                    updateSearchStats(data.results.length);
 
-                                // 在数据加载完成后展开所有节点
-                                setTimeout(function() {
-                                    tree.jstree(true).open_all();
-                                    // 移除所有链接的href属性
-                                    $('#file-tree a').removeAttr('href');
-                                }, 100);
-                            } else {
-                                callback.call(this, []);
-                                updateSearchStats(0);
-                            }
-                        })
-                        .catch(function (error) {
-                            if (error !== '未授权' && error.status !== 401) {
-                                console.error('搜索失败:', error);
-                                callback.call(this, []);
-                                updateSearchStats(0);
-                            }
-                        });
+                                    // 在数据加载完成后展开所有节点
+                                    setTimeout(function () {
+                                        tree.jstree(true).open_all();
+                                        // 移除所有链接的href属性
+                                        $('#file-tree a').removeAttr('href');
+                                    }, 100);
+                                } else {
+                                    callback.call(this, []);
+                                    updateSearchStats(0);
+                                }
+                            })
+                            .catch(function (error) {
+                                if (error !== '未授权' && error.status !== 401) {
+                                    console.error('搜索失败:', error);
+                                    callback.call(this, []);
+                                    updateSearchStats(0);
+                                }
+                            });
                     } else {
                         // 否则使用正常的文件列表API
                         authAjax({
@@ -630,24 +633,24 @@
                             method: 'GET',
                             dataType: 'json'
                         })
-                        .then(function (data) {
-                            callback.call(this, data);
-                            // 当不是搜索模式时，清空搜索统计
-                            if (currentSearchTerm === '') {
-                                $('#search-stats').text('');
-                            }
+                            .then(function (data) {
+                                callback.call(this, data);
+                                // 当不是搜索模式时，清空搜索统计
+                                if (currentSearchTerm === '') {
+                                    $('#search-stats').text('');
+                                }
 
-                            // 数据加载完成后移除所有链接的href属性
-                            setTimeout(function() {
-                                $('#file-tree a').removeAttr('href');
-                            }, 100);
-                        })
-                        .catch(function (error) {
-                            if (error !== '未授权' && error.status !== 401) {
-                                console.error('加载文件列表失败:', error);
-                                callback.call(this, []);
-                            }
-                        });
+                                // 数据加载完成后移除所有链接的href属性
+                                setTimeout(function () {
+                                    $('#file-tree a').removeAttr('href');
+                                }, 100);
+                            })
+                            .catch(function (error) {
+                                if (error !== '未授权' && error.status !== 401) {
+                                    console.error('加载文件列表失败:', error);
+                                    callback.call(this, []);
+                                }
+                            });
                     }
                 },
                 'themes': {
@@ -677,20 +680,20 @@
         });
 
         // jstree准备就绪后移除所有链接的href属性
-        $('#file-tree').on('ready.jstree', function() {
+        $('#file-tree').on('ready.jstree', function () {
             $('#file-tree a').removeAttr('href');
         });
 
         // 当节点打开时移除新增链接的href属性
-        $('#file-tree').on('after_open.jstree', function() {
-            setTimeout(function() {
+        $('#file-tree').on('after_open.jstree', function () {
+            setTimeout(function () {
                 $('#file-tree a').removeAttr('href');
             }, 50);
         });
 
         // 当节点关闭时也需要处理
-        $('#file-tree').on('after_close.jstree', function() {
-            setTimeout(function() {
+        $('#file-tree').on('after_close.jstree', function () {
+            setTimeout(function () {
                 $('#file-tree a').removeAttr('href');
             }, 50);
         });
@@ -1089,7 +1092,7 @@
                     }
                 },
                 // 监听滚动事件以保存滚动位置
-                resize: function() {
+                resize: function () {
                     if (currentFile && currentFile.path) {
                         saveFileScrollPosition(currentFile.path);
                     }
@@ -1236,7 +1239,7 @@
 
                 elementsToWatch.forEach(element => {
                     if (element) {
-                        element.addEventListener('scroll', function() {
+                        element.addEventListener('scroll', function () {
                             if (scrollTimeout) {
                                 clearTimeout(scrollTimeout);
                             }
@@ -1246,7 +1249,7 @@
                                     saveFileScrollPosition(currentFile.path);
                                 }
                             }, 500); // 每500毫秒保存一次
-                        }, { passive: true });
+                        }, {passive: true});
                     }
                 });
             }
