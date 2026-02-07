@@ -49,7 +49,7 @@
             height: 100%;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             border-radius: 16px;
-            overflow: hidden;
+            overflow: visible; /* 确保侧边栏可以溢出显示 */
             margin: 12px;
             background: var(--surface-color);
         }
@@ -167,6 +167,48 @@
         .file-info-bar {
             display: none;
         }
+
+        .mobile-sidebar-toggle {
+            display: none; /* 默认隐藏在桌面端 */
+        }
+
+        @media (max-width: 576px) {
+            .mobile-sidebar-toggle {
+                position: fixed;
+                top: 15px;
+                left: 15px;
+                z-index: 999;
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                cursor: pointer;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .overlay-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 998;
+                display: none;
+            }
+
+            .overlay-backdrop.visible {
+                display: block;
+            }
+
+        }
+
 
         .editor-content {
             flex: 1;
@@ -413,18 +455,21 @@
             .main-container {
                 flex-direction: column;
                 margin: 5px;
+                height: calc(100vh - 10px); /* Adjust for margin */
             }
 
             .tree-container {
                 width: 100%;
                 height: 40%;
                 min-height: 250px;
+                max-height: 40vh;
             }
 
             .editor-container {
                 width: 100%;
                 height: 60%;
                 min-height: 300px;
+                max-height: 60vh;
             }
 
             .resize-handle {
@@ -438,10 +483,168 @@
                 writing-mode: horizontal-tb;
                 letter-spacing: 3px;
             }
+
+            .search-box {
+                padding: 12px 10px 10px;
+            }
+
+            .search-box input {
+                padding: 10px 15px 10px 40px;
+                font-size: 14px;
+            }
+
+            .status-bar {
+                padding: 8px 8px 15px 8px;
+                font-size: 12px;
+                height: 35px;
+                max-height: 35px;
+            }
+        }
+
+        /* Mobile devices - Updated */
+        @media (max-width: 576px) {
+            body {
+                margin: 0;
+                padding: 0;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            .main-container {
+                margin: 0;
+                border-radius: 0;
+                height: 100vh;
+                flex-direction: column;
+                box-shadow: none;
+                overflow: hidden;
+            }
+
+            .tree-container {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                max-width: none !important;
+                z-index: 1001 !important;
+                transform: translateX(-100%) !important;
+                transition: transform 0.3s ease !important;
+                background: var(--sidebar-bg) !important;
+                border-right: 1px solid var(--border-color) !important;
+                display: flex !important;
+                flex-direction: column !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+                pointer-events: auto !important;
+            }
+
+            .tree-container.sidebar-open {
+                transform: translateX(0) !important;
+            }
+
+            .editor-container {
+                width: 100% !important;
+                height: 100vh !important;
+                min-height: auto !important;
+                max-height: none !important;
+                position: static !important;
+            }
+
+            #vditor-container {
+                height: calc(100vh - 40px) !important; /* Full height minus status bar */
+                max-height: none !important;
+            }
+
+            .search-box {
+                padding: 10px 8px 8px !important;
+                flex-shrink: 0 !important;
+                position: sticky !important;
+                top: 0 !important;
+                background: var(--sidebar-bg) !important;
+                z-index: 10 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            .search-box input {
+                padding: 8px 12px 8px 35px !important;
+                font-size: 14px !important;
+            }
+
+            .search-stats {
+                font-size: 11px !important;
+                margin-top: 8px !important;
+            }
+
+            #file-tree {
+                height: 100% !important;
+                flex: 1 1 auto !important;
+                overflow-y: auto !important;
+                min-height: 0; /* Allow flex child to shrink */
+                box-sizing: border-box !important;
+            }
+
+            .jstree-default .jstree-anchor {
+                height: 30px !important;
+                line-height: 30px !important;
+                font-size: 13px !important;
+                padding: 0 2px !important;
+            }
+
+            .status-bar {
+                padding: 6px 6px 12px 6px !important;
+                font-size: 11px !important;
+                height: 30px !important;
+                max-height: 30px !important;
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 997 !important;
+            }
+
+            .resize-handle {
+                display: none !important;
+            }
+
+            .file-info-bar {
+                display: none !important;
+            }
+        }
+
+        /* Very small screens */
+        @media (max-width: 400px) {
+            .jstree-default .jstree-anchor {
+                height: 28px;
+                line-height: 28px;
+                font-size: 12px;
+            }
+
+            .search-box input {
+                padding: 7px 10px 7px 30px;
+                font-size: 12px;
+            }
+
+            .search-stats {
+                font-size: 10px;
+            }
+
+            #file-tree {
+                height: calc(100% - 45px);
+            }
         }
     </style>
 </head>
 <body>
+<!-- Mobile sidebar toggle button -->
+<button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" title="文件列表">
+    📂
+</button>
+
+<!-- Overlay backdrop -->
+<div class="overlay-backdrop" id="overlay-backdrop"></div>
+
 <div class="main-container">
     <div class="tree-container" id="tree-container">
         <div class="search-box">
@@ -966,8 +1169,14 @@
 
             $('#vditor-container').html('<div id="vditor"></div>');
 
+            // 在移动端设置合适的高度
+            const isMobile = window.innerWidth <= 576;
+            const editorHeight = isMobile ?
+                (window.innerHeight - 40) + 'px' : // 减去状态栏高度
+                '100%';
+
             vditor = new Vditor('vditor', {
-                height: '100%',
+                height: editorHeight,
                 value: content,
                 cache: {
                     enable: false,
@@ -1090,16 +1299,45 @@
                     if (window.addScrollListeners) {
                         window.addScrollListeners();
                     }
+
+                    // 在移动端调整编辑器高度
+                    if (window.innerWidth <= 576) {
+                        adjustEditorHeight();
+                    }
                 },
                 // 监听滚动事件以保存滚动位置
                 resize: function () {
                     if (currentFile && currentFile.path) {
                         saveFileScrollPosition(currentFile.path);
                     }
+
+                    // 调整编辑器高度以适应新的窗口尺寸
+                    if (window.innerWidth <= 576) {
+                        adjustEditorHeight();
+                    }
                 }
             });
 
             isDirty = false;
+        }
+
+        // 调整编辑器高度以适应移动端屏幕
+        function adjustEditorHeight() {
+            if (vditor && window.innerWidth <= 576) {
+                const editorContainer = document.getElementById('vditor-container');
+                if (editorContainer) {
+                    const statusBarHeight = 40; // 状态栏高度
+                    const newHeight = (window.innerHeight - statusBarHeight) + 'px';
+                    editorContainer.style.height = newHeight;
+
+                    // 重新调整Vditor大小
+                    setTimeout(() => {
+                        if (vditor) {
+                            vditor.resize();
+                        }
+                    }, 100);
+                }
+            }
         }
 
         // 启动自动保存
@@ -1285,7 +1523,115 @@
                     vditor.resize();
                 }, 100);
             }
+
+            // On mobile devices, ensure proper layout after resize
+            if (window.innerWidth <= 576) {
+                $('.main-container').css('height', '100vh');
+                adjustEditorHeight(); // 调整编辑器高度
+            } else {
+                // 在桌面端恢复原始行为
+                if (vditor) {
+                    vditor.resize();
+                }
+            }
         });
+
+        // Handle orientation change for mobile devices
+        $(window).on('orientationchange', function() {
+            setTimeout(() => {
+                if (window.innerWidth <= 576) {
+                    // 在移动端调整编辑器高度
+                    adjustEditorHeight();
+                } else {
+                    // 在桌面端正常处理
+                    if (vditor) {
+                        vditor.resize();
+                    }
+                    if (tree) {
+                        tree.jstree('redraw');
+                    }
+                }
+            }, 300); // Delay to allow orientation change to complete
+        });
+
+        // 移动端侧边栏控制
+        function setupMobileSidebar() {
+            const sidebarToggle = document.getElementById('mobile-sidebar-toggle');
+            const treeContainer = document.getElementById('tree-container');
+            const backdrop = document.getElementById('overlay-backdrop');
+
+            if (!sidebarToggle || !treeContainer || !backdrop) {
+                return;
+            }
+
+            // 切换侧边栏显示/隐藏
+            sidebarToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                treeContainer.classList.add('sidebar-open');
+                backdrop.classList.add('visible');
+
+                // 确保侧边栏高度为100vh
+                treeContainer.style.height = '100vh';
+
+                // 在移动设备上，确保编辑器失去焦点以防止键盘问题
+                if (vditor) {
+                    vditor.focus();
+                    vditor.blur();
+                }
+            });
+
+            // 点击遮罩层关闭侧边栏
+            backdrop.addEventListener('click', function() {
+                treeContainer.classList.remove('sidebar-open');
+                backdrop.classList.remove('visible');
+
+                // 确保编辑器调整大小
+                setTimeout(() => {
+                    if (vditor) {
+                        vditor.resize();
+                    }
+                }, 350);
+            });
+
+            // 点击文件树内的元素后立即关闭侧边栏（全屏模式下更及时响应）
+            $('#file-tree').on('click', 'a', function() {
+                if (window.innerWidth <= 576) {
+                    // 关闭侧边栏
+                    treeContainer.classList.remove('sidebar-open');
+                    backdrop.classList.remove('visible');
+
+                    // 延迟调整编辑器大小以确保动画完成
+                    setTimeout(() => {
+                        if (vditor) {
+                            vditor.resize();
+                        }
+                    }, 350); // 稍长于过渡动画的时间
+                }
+            });
+
+            // 处理窗口大小变化 - 如果从移动视图切换到桌面视图，确保侧边栏关闭
+            $(window).on('resize', function() {
+                if (window.innerWidth > 576) {
+                    treeContainer.classList.remove('sidebar-open');
+                    backdrop.classList.remove('visible');
+                } else {
+                    // 在移动端，如果侧边栏是打开的，确保它保持正确的全屏状态
+                    if (treeContainer.classList.contains('sidebar-open')) {
+                        treeContainer.style.height = '100vh';
+                    }
+                }
+
+                // 调整编辑器大小
+                setTimeout(() => {
+                    if (vditor) {
+                        vditor.resize();
+                    }
+                }, 100);
+            });
+        }
+
+        // 初始化移动端侧边栏功能
+        setupMobileSidebar();
 
         // 初始检查认证状态
         if (!checkAuth()) {
