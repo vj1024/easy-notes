@@ -19,7 +19,7 @@ import (
 
 const (
 	maxUploadSize = 50 << 20
-	tokenExpire   = 24 * time.Hour // token 有效期 24 小时
+	tokenExpire   = 7 * 24 * time.Hour // token 有效期 7 天
 )
 
 var (
