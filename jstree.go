@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -44,6 +45,11 @@ func GenerateJsTree(rootPath string) ([]*JsTreeNode, error) {
 			if d.IsDir() {
 				return filepath.SkipDir
 			}
+			return nil
+		}
+
+		// 如果是文件且不是支持的文本格式，则跳过
+		if !d.IsDir() && !isSupportedTextFile(d.Name()) {
 			return nil
 		}
 
@@ -88,8 +94,13 @@ func GenerateJsTree(rootPath string) ([]*JsTreeNode, error) {
 		return nil, err
 	}
 
-	//return []*JsTreeNode{rootNode}, nil
-	return rootNode.Children, nil
+	if rootNode != nil && rootNode.Children != nil {
+		// 排序节点
+		sortTreeNodes(rootNode.Children)
+		return rootNode.Children, nil
+	}
+
+	return []*JsTreeNode{}, nil
 }
 
 // getType 获取文件类型
@@ -134,4 +145,138 @@ func findParentNode(root *JsTreeNode, relPath string) *JsTreeNode {
 	}
 
 	return current
+}
+
+// 检查文件扩展名是否为支持的文本格式
+func isSupportedTextFile(filename string) bool {
+	supportedExtensions := map[string]bool{
+		".md":    true,  // Markdown
+		".txt":   true,  // Text
+		".rtf":   true,  // Rich Text Format
+		".csv":   true,  // Comma Separated Values
+		".log":   true,  // Log files
+		".json":  true,  // JSON
+		".xml":   true,  // XML
+		".yaml":  true,  // YAML
+		".yml":   true,  // YAML
+		".toml":  true,  // TOML
+		".ini":   true,  // INI files
+		".conf":  true,  // Configuration files
+		".cfg":   true,  // Configuration files
+		".sql":   true,  // SQL files
+		".html":  true,  // HTML
+		".htm":   true,  // HTML
+		".css":   true,  // CSS
+		".js":    true,  // JavaScript
+		".ts":    true,  // TypeScript
+		".py":    true,  // Python
+		".go":    true,  // Go
+		".java":  true,  // Java
+		".cpp":   true,  // C++
+		".c":     true,  // C
+		".h":     true,  // Header files
+		".hpp":   true,  // Header files
+		".rb":    true,  // Ruby
+		".php":   true,  // PHP
+		".sh":    true,  // Shell scripts
+		".bat":   true,  // Batch files
+		".ps1":   true,  // PowerShell scripts
+		".pl":    true,  // Perl
+		".swift": true,  // Swift
+		".kt":    true,  // Kotlin
+		".rs":    true,  // Rust
+		".scala": true,  // Scala
+		".dart":  true,  // Dart
+		".vue":   true,  // Vue
+		".jsx":   true,  // JSX
+		".tsx":   true,  // TSX
+		".less":  true,  // LESS
+		".scss":  true,  // SCSS
+		".sass":  true,  // SASS
+		".coffee": true, // CoffeeScript
+		".elm":   true,  // Elm
+		".erl":   true,  // Erlang
+		".ex":    true,  // Elixir
+		".exs":   true,  // Elixir script
+		".hs":    true,  // Haskell
+		".lhs":   true,  // Literate Haskell
+		".jl":    true,  // Julia
+		".lua":   true,  // Lua
+		".ml":    true,  // OCaml
+		".mli":   true,  // OCaml interface
+		".nim":   true,  // Nim
+		".r":     true,  // R
+		".R":     true,  // R
+		".vb":    true,  // Visual Basic
+		".vbs":   true,  // VBScript
+		".fs":    true,  // F#
+		".fsx":   true,  // F# script
+		".fsi":   true,  // F# signature
+		".clj":   true,  // Clojure
+		".cljs":  true,  // ClojureScript
+		".edn":   true,  // EDN
+		".groovy": true, // Groovy
+		".gradle": true, // Gradle
+		".properties": true, // Properties files
+		".env":   true,  // Environment files
+		".gitignore": true, // Git ignore files
+		".dockerignore": true, // Docker ignore files
+		".npmignore": true, // NPM ignore files
+		".editorconfig": true, // Editor config files
+		".bowerrc": true, // Bower config
+		".jshintrc": true, // JSHint config
+		".eslintrc": true, // ESLint config
+		".babelrc": true, // Babel config
+		".prettierrc": true, // Prettier config
+		".stylelintrc": true, // Stylelint config
+		".markdown": true, // Markdown
+		".mkd":    true,  // Markdown
+		".mdown":  true,  // Markdown
+		".mkdn":   true,  // Markdown
+		".mdwn":   true,  // Markdown
+		".mdtxt":  true,  // Markdown
+		".mdtext": true,  // Markdown
+		".rmd":    true,  // R Markdown
+		".bib":    true,  // BibTeX
+		".bst":    true,  // BibTeX style
+		".tex":    true,  // LaTeX
+		".cls":    true,  // LaTeX class
+		".sty":    true,  // LaTeX style
+		".idx":    true,  // LaTeX index
+		".latex":  true,  // LaTeX
+		".tikz":   true,  // TikZ graphics
+		".svg":    true,  // SVG (XML-based)
+		".dot":    true,  // Graphviz DOT
+		".gv":     true,  // Graphviz
+		".plantuml": true, // PlantUML
+		".puml":   true,  // PlantUML
+		".iuml":   true,  // PlantUML
+		".wsd":    true,  // WebSequenceDiagrams
+		".adoc":   true,  // AsciiDoc
+		".asciidoc": true, // AsciiDoc
+		".asc":    true,  // AsciiDoc
+	}
+
+	ext := strings.ToLower(filepath.Ext(filename))
+	return supportedExtensions[ext]
+}
+
+// 按类型和名称排序节点
+func sortTreeNodes(nodes []*JsTreeNode) {
+	// 先排序：文件夹在前，文件在后；同类型按名称排序
+	sort.Slice(nodes, func(i, j int) bool {
+		// 如果类型不同，文件夹在前
+		if nodes[i].Type != nodes[j].Type {
+			return nodes[i].Type == "folder"
+		}
+		// 类型相同，按名称排序（忽略大小写）
+		return strings.ToLower(nodes[i].Text) < strings.ToLower(nodes[j].Text)
+	})
+
+	// 递归排序子节点
+	for _, node := range nodes {
+		if node.Children != nil && len(node.Children) > 0 {
+			sortTreeNodes(node.Children)
+		}
+	}
 }

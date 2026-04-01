@@ -12,70 +12,146 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #4895ef;
+            --secondary-color: #3a0ca3;
+            --accent-color: #f72585;
+            --background-color: #f8f9fa;
+            --surface-color: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #e0e0e0;
+            --success-color: #4cc9f0;
+            --warning-color: #f8961e;
+            --error-color: #f72585;
+            --sidebar-bg: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+            --header-bg: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+            --status-bg: linear-gradient(180deg, #e9ecef 0%, #dee2e6 100%);
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
             padding: 0;
             height: 100vh;
             display: flex;
             overflow: hidden;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            background-image: radial-gradient(circle at 10% 20%, rgba(67, 97, 238, 0.05) 0%, transparent 20%),
+            radial-gradient(circle at 90% 80%, rgba(58, 12, 163, 0.05) 0%, transparent 20%);
         }
 
         .main-container {
             display: flex;
             width: 100%;
             height: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            overflow: visible; /* 确保侧边栏可以溢出显示 */
+            margin: 12px;
+            background: var(--surface-color);
         }
 
         .tree-container {
-            width: 10%;
+            width: 15%;
             min-width: 200px;
-            max-width: 50%;
+            max-width: 35%;
             height: 100%;
-            background: #f5f5f5;
+            background: var(--sidebar-bg);
             display: flex;
             flex-direction: column;
             position: relative;
+            border-right: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            background-clip: padding-box;
         }
 
         .resize-handle {
-            width: 4px;
+            width: 10px;
             height: 100%;
-            background: #ddd;
+            background: transparent;
             cursor: col-resize;
             position: absolute;
-            right: -2px;
+            right: -5px;
             top: 0;
             z-index: 10;
-            transition: background-color 0.2s;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .resize-handle::after {
+            content: "⋮";
+            writing-mode: vertical-lr;
+            letter-spacing: 3px;
+            color: var(--text-secondary);
+            opacity: 0.4;
+            font-size: 14px;
         }
 
         .resize-handle:hover {
-            background: #4CAF50;
+            background: var(--primary-color);
+        }
+
+        .resize-handle:hover::after {
+            opacity: 1;
+            color: white;
         }
 
         .resize-handle.active {
-            background: #2E7D32;
+            background: var(--secondary-color);
         }
 
         .search-box {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
+            padding: 18px 15px 15px;
+            border-bottom: 1px solid var(--border-color);
             flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
         }
 
         .search-box input {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 12px 20px 12px 45px;
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background: var(--surface-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
             font-size: 14px;
         }
 
         #file-tree {
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
+            padding: 8px 5px;
+            background: var(--surface-color);
+            height: calc(100% - 60px); /* Account for search box height */
         }
 
         .editor-container {
@@ -83,58 +159,129 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            min-width: 400px;
+            min-width: 550px;
+            background: var(--surface-color);
+            overflow: hidden;
         }
 
         .file-info-bar {
-            padding: 10px;
-            background: #f0f0f0;
-            border-bottom: 1px solid #ddd;
-            font-size: 14px;
-            color: #666;
-            flex-shrink: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: none;
         }
+
+        .mobile-sidebar-toggle {
+            display: none; /* 默认隐藏在桌面端 */
+        }
+
+        @media (max-width: 576px) {
+            .mobile-sidebar-toggle {
+                position: fixed;
+                top: 15px;
+                left: 15px;
+                z-index: 999;
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                cursor: pointer;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .overlay-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 998;
+                display: none;
+            }
+
+            .overlay-backdrop.visible {
+                display: block;
+            }
+
+        }
+
 
         .editor-content {
             flex: 1;
             display: flex;
-            overflow: hidden;
-        }
-
-        #vditor-container {
-            flex: 1;
+            flex-direction: column;
             overflow: hidden;
             position: relative;
         }
 
+        #vditor-container {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+            background: var(--surface-color);
+            height: calc(100% - 40px); /* Account for the status bar height */
+        }
+
         .status-bar {
-            padding: 8px 10px;
-            background: #f0f0f0;
-            border-top: 1px solid #ddd;
-            font-size: 12px;
-            color: #666;
-            text-align: right;
+            padding: 10px 10px 20px 10px;
+            background: var(--status-bg);
+            border-top: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-secondary);
             flex-shrink: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', monospace;
+            backdrop-filter: blur(10px);
+            box-sizing: border-box;
+            height: 40px;
+            max-height: 40px;
+            overflow: hidden;
         }
 
         .loading {
             text-align: center;
-            padding: 20px;
-            color: #666;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+            font-style: italic;
+            font-size: 16px;
+        }
+
+        .loading::before {
+            content: "";
+            display: block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(67, 97, 238, 0.2);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .error {
-            color: #d32f2f;
-            padding: 10px;
-            background: #ffebee;
-            border-radius: 4px;
-            margin: 10px 0;
+            color: var(--error-color);
+            padding: 15px 20px;
+            background: #fdecea;
+            border-left: 4px solid var(--error-color);
+            border-radius: 0 8px 8px 0;
+            margin: 15px 20px;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(247, 37, 133, 0.1);
         }
 
         .no-file-selected {
@@ -142,18 +289,35 @@
             justify-content: center;
             align-items: center;
             height: 100%;
-            color: #999;
-            font-size: 16px;
+            color: var(--text-secondary);
+            font-size: 18px;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .no-file-selected::before {
+            content: "📝";
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.7;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .search-stats {
-            margin-top: 5px;
-            font-size: 12px;
-            color: #666;
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 0 5px;
+            text-align: center;
+            font-style: italic;
         }
 
         #vditor {
             height: 100% !important;
+            max-height: 100%;
         }
 
         .unauthorized {
@@ -162,34 +326,337 @@
             align-items: center;
             height: 100%;
             flex-direction: column;
+            background: var(--background-color);
+            padding: 20px;
         }
 
         .unauthorized-message {
-            color: #d32f2f;
-            font-size: 16px;
-            margin-bottom: 20px;
+            color: var(--error-color);
+            font-size: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 500;
         }
 
         .login-button {
-            background: #4CAF50;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
+            padding: 14px 30px;
+            border-radius: 50px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 600;
         }
 
         .login-button:hover {
-            background: #45a049;
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
+        }
+
+        .login-button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        /* JSTree 样式定制 */
+        .jstree-default .jstree-clicked {
+            background: rgba(67, 97, 238, 0.15) !important;
+            border-radius: 4px;
+            box-shadow: inset 0 0 1px var(--primary-color);
+        }
+
+        .jstree-default .jstree-hovered {
+            background: rgba(67, 97, 238, 0.1) !important;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .jstree-default .jstree-anchor {
+            border-radius: 4px;
+            margin: 1px 0;
+            padding: 0 4px !important;
+            height: 26px;
+            line-height: 26px;
+            font-size: 14px;
+            cursor: pointer; /* 确保光标样式正确 */
+        }
+
+        /* 防止悬停时显示链接提示 */
+        .jstree-anchor {
+            pointer-events: auto !important;
+        }
+
+        .jstree-default .jstree-icon {
+            line-height: 26px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .jstree-default .jstree-leaf > .jstree-ocl {
+            cursor: pointer;
+        }
+
+        .jstree-default .jstree-wholerow {
+            height: 26px;
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-secondary);
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .tree-container {
+                width: 32%;
+                min-width: 250px;
+            }
+
+            .editor-container {
+                min-width: 450px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .tree-container {
+                width: 35%;
+                min-width: 220px;
+            }
+
+            .editor-container {
+                min-width: 400px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                margin: 5px;
+                height: calc(100vh - 10px); /* Adjust for margin */
+            }
+
+            .tree-container {
+                width: 100%;
+                height: 40%;
+                min-height: 250px;
+                max-height: 40vh;
+            }
+
+            .editor-container {
+                width: 100%;
+                height: 60%;
+                min-height: 300px;
+                max-height: 60vh;
+            }
+
+            .resize-handle {
+                width: 100%;
+                height: 10px;
+                top: -5px;
+                left: 0;
+            }
+
+            .resize-handle::after {
+                writing-mode: horizontal-tb;
+                letter-spacing: 3px;
+            }
+
+            .search-box {
+                padding: 12px 10px 10px;
+            }
+
+            .search-box input {
+                padding: 10px 15px 10px 40px;
+                font-size: 14px;
+            }
+
+            .status-bar {
+                padding: 8px 8px 15px 8px;
+                font-size: 12px;
+                height: 35px;
+                max-height: 35px;
+            }
+        }
+
+        /* Mobile devices - Updated */
+        @media (max-width: 576px) {
+            body {
+                margin: 0;
+                padding: 0;
+                height: 100vh;
+                overflow: hidden;
+            }
+
+            .main-container {
+                margin: 0;
+                border-radius: 0;
+                height: 100vh;
+                flex-direction: column;
+                box-shadow: none;
+                overflow: hidden;
+            }
+
+            .tree-container {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                max-width: none !important;
+                z-index: 1001 !important;
+                transform: translateX(-100%) !important;
+                transition: transform 0.3s ease !important;
+                background: var(--sidebar-bg) !important;
+                border-right: 1px solid var(--border-color) !important;
+                display: flex !important;
+                flex-direction: column !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+                pointer-events: auto !important;
+            }
+
+            .tree-container.sidebar-open {
+                transform: translateX(0) !important;
+            }
+
+            .editor-container {
+                width: 100% !important;
+                height: 100vh !important;
+                min-height: auto !important;
+                max-height: none !important;
+                position: static !important;
+            }
+
+            #vditor-container {
+                height: calc(100vh - 40px) !important; /* Full height minus status bar */
+                max-height: none !important;
+            }
+
+            .search-box {
+                padding: 10px 8px 8px !important;
+                flex-shrink: 0 !important;
+                position: sticky !important;
+                top: 0 !important;
+                background: var(--sidebar-bg) !important;
+                z-index: 10 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+
+            .search-box input {
+                padding: 8px 12px 8px 35px !important;
+                font-size: 14px !important;
+            }
+
+            .search-stats {
+                font-size: 11px !important;
+                margin-top: 8px !important;
+            }
+
+            #file-tree {
+                height: 100% !important;
+                flex: 1 1 auto !important;
+                overflow-y: auto !important;
+                min-height: 0; /* Allow flex child to shrink */
+                box-sizing: border-box !important;
+            }
+
+            .jstree-default .jstree-anchor {
+                height: 30px !important;
+                line-height: 30px !important;
+                font-size: 13px !important;
+                padding: 0 2px !important;
+            }
+
+            /* 自定义图标样式 */
+            .jstree-default .jstree-themeicon {
+                font-size: 8px;
+                width: 8px;
+                height: 8px;
+            }
+
+            .status-bar {
+                padding: 6px 6px 12px 6px !important;
+                font-size: 11px !important;
+                height: 30px !important;
+                max-height: 30px !important;
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 997 !important;
+            }
+
+            .resize-handle {
+                display: none !important;
+            }
+
+            .file-info-bar {
+                display: none !important;
+            }
+
+        }
+
+        /* Very small screens */
+        @media (max-width: 400px) {
+            .jstree-default .jstree-anchor {
+                height: 28px;
+                line-height: 28px;
+                font-size: 12px;
+            }
+
+            .search-box input {
+                padding: 7px 10px 7px 30px;
+                font-size: 12px;
+            }
+
+            .search-stats {
+                font-size: 10px;
+            }
+
+            #file-tree {
+                height: calc(100% - 45px);
+            }
         }
     </style>
 </head>
 <body>
+<!-- Mobile sidebar toggle button -->
+<button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" title="文件列表">
+    📂
+</button>
+
+<!-- Overlay backdrop -->
+<div class="overlay-backdrop" id="overlay-backdrop"></div>
+
 <div class="main-container">
     <div class="tree-container" id="tree-container">
         <div class="search-box">
-            <input type="text" id="search-input" placeholder="搜索文件...">
+            <input type="text" id="search-input" placeholder="🔍 搜索文件名或内容...">
             <div class="search-stats" id="search-stats"></div>
         </div>
         <div id="file-tree">
@@ -210,7 +677,8 @@
             </div>
         </div>
         <div class="status-bar" id="status-bar">
-            <div>就绪</div>
+            <div id="file-path-display">未选择文件</div>
+            <div id="status-message">就绪</div>
         </div>
     </div>
 </div>
@@ -323,19 +791,78 @@
             });
         }
 
+        // 更新搜索统计信息
+        function updateSearchStats(count) {
+            if (currentSearchTerm.length === 0) {
+                $('#search-stats').text('');
+            } else {
+                $('#search-stats').text(`找到 ${count} 个匹配项`);
+            }
+        }
+
         // 初始化jstree
         const tree = $('#file-tree').jstree({
             'core': {
-                'data': {
-                    'url': BASE_URL + '/api/files?list=true',
-                    'dataType': 'json',
-                    'data': function (node) {
-                        return {
-                            'id': node.id === '#' ? 'root' : node.id,
-                            'search': currentSearchTerm || ''
-                        };
-                    },
-                    'headers': getAuthHeaders()
+                'data': function (obj, callback) {
+                    if (currentSearchTerm) {
+                        // 如果有搜索词，使用搜索API
+                        authAjax({
+                            url: BASE_URL + '/api/files',
+                            method: 'GET',
+                            data: {search: currentSearchTerm},
+                            dataType: 'json'
+                        })
+                            .then(function (data) {
+                                if (data.results) {
+                                    // 使用搜索结果
+                                    callback.call(this, data.results);
+                                    // 更新搜索统计信息
+                                    updateSearchStats(data.results.length);
+
+                                    // 在数据加载完成后展开所有节点
+                                    setTimeout(function () {
+                                        tree.jstree(true).open_all();
+                                        // 移除所有链接的href属性
+                                        $('#file-tree a').removeAttr('href');
+                                    }, 100);
+                                } else {
+                                    callback.call(this, []);
+                                    updateSearchStats(0);
+                                }
+                            })
+                            .catch(function (error) {
+                                if (error !== '未授权' && error.status !== 401) {
+                                    console.error('搜索失败:', error);
+                                    callback.call(this, []);
+                                    updateSearchStats(0);
+                                }
+                            });
+                    } else {
+                        // 否则使用正常的文件列表API
+                        authAjax({
+                            url: BASE_URL + '/api/files?list=true',
+                            method: 'GET',
+                            dataType: 'json'
+                        })
+                            .then(function (data) {
+                                callback.call(this, data);
+                                // 当不是搜索模式时，清空搜索统计
+                                if (currentSearchTerm === '') {
+                                    $('#search-stats').text('');
+                                }
+
+                                // 数据加载完成后移除所有链接的href属性
+                                setTimeout(function () {
+                                    $('#file-tree a').removeAttr('href');
+                                }, 100);
+                            })
+                            .catch(function (error) {
+                                if (error !== '未授权' && error.status !== 401) {
+                                    console.error('加载文件列表失败:', error);
+                                    callback.call(this, []);
+                                }
+                            });
+                    }
                 },
                 'themes': {
                     'responsive': true,
@@ -348,9 +875,11 @@
                     } else {
                         $('#file-tree').html('<div class="error">加载文件列表失败: ' + error + '</div>');
                     }
-                }
+                },
+                'check_callback': true,
+                'force_text': true  // This prevents HTML injection and potential href issues that cause tooltips
             },
-            'plugins': ['search', 'types'],
+            'plugins': ['types', 'wholerow'],
             'types': {
                 'default': {
                     'icon': 'jstree-folder'
@@ -361,6 +890,25 @@
             }
         });
 
+        // jstree准备就绪后移除所有链接的href属性
+        $('#file-tree').on('ready.jstree', function () {
+            $('#file-tree a').removeAttr('href');
+        });
+
+        // 当节点打开时移除新增链接的href属性
+        $('#file-tree').on('after_open.jstree', function () {
+            setTimeout(function () {
+                $('#file-tree a').removeAttr('href');
+            }, 50);
+        });
+
+        // 当节点关闭时也需要处理
+        $('#file-tree').on('after_close.jstree', function () {
+            setTimeout(function () {
+                $('#file-tree a').removeAttr('href');
+            }, 50);
+        });
+
         // 搜索功能
         $('#search-input').on('input', function () {
             const searchTerm = $(this).val().trim();
@@ -368,26 +916,23 @@
 
             clearTimeout(searchTimeout);
 
-            if (searchTerm.length === 0) {
-                tree.jstree('clear_search');
-                $('#search-stats').text('');
+            // 允许空格分隔的多个关键字，只要总长度大于0即可
+            if (searchTerm.length > 0 && searchTerm.replace(/\s+/g, '').length < 2) {
+                $('#search-stats').text('请输入至少2个有效字符');
                 return;
             }
 
-            if (searchTerm.length < 2) {
-                $('#search-stats').text('请输入至少2个字符');
-                return;
-            }
-
+            // 延迟执行搜索，避免频繁请求
             searchTimeout = setTimeout(() => {
-                tree.jstree('search', searchTerm);
-            }, 300);
-        });
+                // 重新加载树以应用搜索条件
+                tree.jstree(true).refresh();
 
-        // 处理搜索完成事件
-        tree.on('search.jstree', function (e, data) {
-            const matches = data.nodes.length;
-            $('#search-stats').text(`找到 ${matches} 个匹配项`);
+                if (searchTerm.length === 0) {
+                    $('#search-stats').text('');
+                } else {
+                    $('#search-stats').text('搜索中...');
+                }
+            }, 300);
         });
 
         // 处理节点点击事件
@@ -397,16 +942,22 @@
             if (node.type === 'file') {
                 loadFileForEditing(node);
             } else {
-                const filePath = buildFilePath(node);
-                $('#file-title').text(`文件夹: ${filePath}`);
-                $('#vditor-container').html('<div class="no-file-selected">请选择文件进行编辑</div>');
-                if (vditor) {
-                    vditor.destroy();
-                    vditor = null;
+                // 对于搜索结果，我们只处理文件，不处理文件夹
+                if (node.path) {
+                    // 这是一个搜索结果节点，直接加载文件
+                    loadFileByPath(node.path, node.text);
+                } else {
+                    const filePath = buildFilePath(node);
+                    $('#file-title').text(`文件夹: ${filePath}`);
+                    $('#vditor-container').html('<div class="no-file-selected">请选择文件进行编辑</div>');
+                    if (vditor) {
+                        vditor.destroy();
+                        vditor = null;
+                    }
+                    clearSaveInterval();
+                    currentFile = null;
+                    isDirty = false;
                 }
-                clearSaveInterval();
-                currentFile = null;
-                isDirty = false;
             }
         });
 
@@ -429,6 +980,25 @@
             }
         }
 
+        // 根据路径加载文件
+        function loadFileByPath(filePath, fileName) {
+            if (!checkAuth()) return;
+
+            if (isDirty && currentFile && vditor) {
+                if (confirm('当前文件有未保存的更改，是否先保存？')) {
+                    saveCurrentFile().then(() => {
+                        loadNewFileByPath(filePath, fileName);
+                    }).catch(() => {
+                        loadNewFileByPath(filePath, fileName);
+                    });
+                } else {
+                    loadNewFileByPath(filePath, fileName);
+                }
+            } else {
+                loadNewFileByPath(filePath, fileName);
+            }
+        }
+
         // 加载新文件
         function loadNewFile(node) {
             const filePath = buildFilePath(node);
@@ -438,9 +1008,9 @@
                 return;
             }
 
-            $('#file-title').text(`编辑文件: ${filePath}`);
+            $('#file-path-display').text(`文件: ${filePath}`);
             $('#vditor-container').html('<div class="loading">加载文件内容...</div>');
-            $('#status-bar div:last-child').text('加载中...');
+            $('#status-message').text('加载中...');
 
             const url = BASE_URL + `/api/files/${filePath}`;
 
@@ -455,17 +1025,64 @@
                     path: filePath
                 };
 
-                initEditor(content);
-                $('#status-bar div:last-child').text('就绪');
+                // 从localStorage获取上次的滚动位置
+                const savedPosition = getFileScrollPosition(filePath);
+
+                initEditor(content, savedPosition);
+                $('#status-message').text('就绪');
                 isDirty = false;
             }).catch(function (error) {
                 if (error.status !== 401) { // 401错误已经在authAjax中处理
                     $('#vditor-container').html(
                         '<div class="error">加载文件失败: ' + (error.responseText || error.statusText || '未知错误') + '</div>'
                     );
-                    $('#status-bar div:last-child').text('加载失败');
+                    $('#status-message').text('加载失败');
                 }
             });
+        }
+
+        // 根据路径加载新文件
+        function loadNewFileByPath(filePath, fileName) {
+            $('#file-path-display').text(`文件: ${filePath}`);
+            $('#vditor-container').html('<div class="loading">加载文件内容...</div>');
+            $('#status-message').text('加载中...');
+
+            const url = BASE_URL + `/api/files/${filePath}`;
+
+            authAjax({
+                url: url,
+                method: 'GET',
+                dataType: 'text'
+            }).then(function (content) {
+                currentFile = {
+                    id: 'search-' + filePath,
+                    name: fileName,
+                    path: filePath
+                };
+
+                // 从localStorage获取上次的滚动位置
+                const savedPosition = getFileScrollPosition(filePath);
+
+                initEditor(content, savedPosition);
+                $('#status-message').text('就绪');
+                isDirty = false;
+            }).catch(function (error) {
+                if (error.status !== 401) { // 401错误已经在authAjax中处理
+                    $('#vditor-container').html(
+                        '<div class="error">加载文件失败: ' + (error.responseText || error.statusText || '未知错误') + '</div>'
+                    );
+                    $('#status-message').text('加载失败');
+                }
+            });
+        }
+
+        // 更新搜索统计信息
+        function updateSearchStats(count) {
+            if (currentSearchTerm.length === 0) {
+                $('#search-stats').text('');
+            } else {
+                $('#search-stats').text(`找到 ${count} 个匹配项`);
+            }
         }
 
         // 构建文件路径
@@ -495,8 +1112,64 @@
             return pathParts.join('/');
         }
 
+        // 保存文件滚动位置到localStorage
+        function saveFileScrollPosition(filePath) {
+            if (!vditor || !filePath) return;
+
+            try {
+                const positionData = {
+                    previewScrollTop: 0,
+                    irScrollTop: 0,
+                    svScrollTop: 0,
+                    wysiwygScrollTop: 0,
+                    timestamp: Date.now()
+                };
+
+                // 获取各种模式下的滚动位置
+                if (vditor.vditor && vditor.vditor.preview && vditor.vditor.preview.element) {
+                    positionData.previewScrollTop = vditor.vditor.preview.element.scrollTop;
+                }
+
+                if (vditor.vditor && vditor.vditor.ir && vditor.vditor.ir.element) {
+                    positionData.irScrollTop = vditor.vditor.ir.element.scrollTop;
+                }
+
+                if (vditor.vditor && vditor.vditor.sv && vditor.vditor.sv.element) {
+                    positionData.svScrollTop = vditor.vditor.sv.element.scrollTop;
+                }
+
+                if (vditor.vditor && vditor.vditor.wysiwyg && vditor.vditor.wysiwyg.element) {
+                    positionData.wysiwygScrollTop = vditor.vditor.wysiwyg.element.scrollTop;
+                }
+
+                // 存储到localStorage
+                const key = `file_scroll_position_${filePath}`;
+                localStorage.setItem(key, JSON.stringify(positionData));
+            } catch (e) {
+                console.warn('无法保存滚动位置:', e);
+            }
+        }
+
+        // 从localStorage获取文件滚动位置
+        function getFileScrollPosition(filePath) {
+            if (!filePath) return null;
+
+            try {
+                const key = `file_scroll_position_${filePath}`;
+                const stored = localStorage.getItem(key);
+
+                if (stored) {
+                    return JSON.parse(stored);
+                }
+            } catch (e) {
+                console.warn('无法获取滚动位置:', e);
+            }
+
+            return null;
+        }
+
         // 初始化Vditor编辑器
-        function initEditor(content) {
+        function initEditor(content, savedPosition = null) {
             if (vditor) {
                 vditor.destroy();
                 vditor = null;
@@ -504,8 +1177,14 @@
 
             $('#vditor-container').html('<div id="vditor"></div>');
 
+            // 在移动端设置合适的高度
+            const isMobile = window.innerWidth <= 576;
+            const editorHeight = isMobile ?
+                (window.innerHeight - 40) + 'px' : // 减去状态栏高度
+                '100%';
+
             vditor = new Vditor('vditor', {
-                height: '100%',
+                height: editorHeight,
                 value: content,
                 cache: {
                     enable: false,
@@ -554,6 +1233,16 @@
                         ],
                     }
                 ],
+                toolbarConfig: {
+                    pin: true,
+                },
+                cache: {
+                    enable: false,
+                },
+                theme: {
+                    current: 'classic',
+                    path: 'https://unpkg.com/vditor@3.11.2/dist/css/content-theme',
+                },
                 "outline": {
                     "enable": true,
                     "position": "right"
@@ -563,19 +1252,100 @@
                         isDirty = true;
                         $('#status-bar div:last-child').text('已修改 (未保存)');
                     }
+
+                    // 保存滚动位置
+                    if (currentFile && currentFile.path) {
+                        saveFileScrollPosition(currentFile.path);
+                    }
                 },
                 focus: function (value) {
                     startAutoSave();
                 },
                 blur: function (value) {
                     clearSaveInterval();
+
+                    // 保存滚动位置
+                    if (currentFile && currentFile.path) {
+                        saveFileScrollPosition(currentFile.path);
+                    }
                 },
                 after: function () {
                     startAutoSave();
+
+                    // 如果有保存的位置，恢复滚动位置
+                    if (savedPosition && vditor) {
+                        setTimeout(() => {
+                            try {
+                                // 尝试滚动到保存的位置
+                                const previewElement = vditor.vditor.preview.element;
+                                if (previewElement) {
+                                    previewElement.scrollTop = savedPosition.previewScrollTop || 0;
+                                }
+
+                                // 对于编辑模式，滚动到指定行
+                                const irElement = vditor.vditor.ir.element;
+                                if (irElement && savedPosition.irScrollTop) {
+                                    irElement.scrollTop = savedPosition.irScrollTop;
+                                }
+
+                                const svElement = vditor.vditor.sv.element;
+                                if (svElement && savedPosition.svScrollTop) {
+                                    svElement.scrollTop = savedPosition.svScrollTop;
+                                }
+
+                                const wysiwygElement = vditor.vditor.wysiwyg.element;
+                                if (wysiwygElement && savedPosition.wysiwygScrollTop) {
+                                    wysiwygElement.scrollTop = savedPosition.wysiwygScrollTop;
+                                }
+                            } catch (e) {
+                                console.warn('无法恢复滚动位置:', e);
+                            }
+                        }, 100);
+                    }
+
+                    // 添加滚动监听器
+                    if (window.addScrollListeners) {
+                        window.addScrollListeners();
+                    }
+
+                    // 在移动端调整编辑器高度
+                    if (window.innerWidth <= 576) {
+                        adjustEditorHeight();
+                    }
+                },
+                // 监听滚动事件以保存滚动位置
+                resize: function () {
+                    if (currentFile && currentFile.path) {
+                        saveFileScrollPosition(currentFile.path);
+                    }
+
+                    // 调整编辑器高度以适应新的窗口尺寸
+                    if (window.innerWidth <= 576) {
+                        adjustEditorHeight();
+                    }
                 }
             });
 
             isDirty = false;
+        }
+
+        // 调整编辑器高度以适应移动端屏幕
+        function adjustEditorHeight() {
+            if (vditor && window.innerWidth <= 576) {
+                const editorContainer = document.getElementById('vditor-container');
+                if (editorContainer) {
+                    const statusBarHeight = 40; // 状态栏高度
+                    const newHeight = (window.innerHeight - statusBarHeight) + 'px';
+                    editorContainer.style.height = newHeight;
+
+                    // 重新调整Vditor大小
+                    setTimeout(() => {
+                        if (vditor) {
+                            vditor.resize();
+                        }
+                    }, 100);
+                }
+            }
         }
 
         // 启动自动保存
@@ -696,14 +1466,60 @@
             }
         });
 
-        // 窗口关闭前提示保存
+        // 监听编辑器区域的滚动事件以保存滚动位置
+        function setupScrollListener() {
+            // 使用节流函数减少保存频率
+            let scrollTimeout;
+
+            // 由于Vditor有自己的滚动容器，我们需要在编辑器初始化后添加滚动监听器
+            function addScrollListeners() {
+                if (!vditor) return;
+
+                // 获取Vditor的各种模式的滚动容器
+                const elementsToWatch = [
+                    vditor.vditor?.preview?.element,
+                    vditor.vditor?.ir?.element,
+                    vditor.vditor?.sv?.element,
+                    vditor.vditor?.wysiwyg?.element
+                ];
+
+                elementsToWatch.forEach(element => {
+                    if (element) {
+                        element.addEventListener('scroll', function () {
+                            if (scrollTimeout) {
+                                clearTimeout(scrollTimeout);
+                            }
+
+                            scrollTimeout = setTimeout(() => {
+                                if (currentFile && currentFile.path) {
+                                    saveFileScrollPosition(currentFile.path);
+                                }
+                            }, 500); // 每500毫秒保存一次
+                        }, {passive: true});
+                    }
+                });
+            }
+
+            // 暴露给外部调用
+            window.addScrollListeners = addScrollListeners;
+        }
+
+        // 窗口关闭前保存滚动位置和提示保存
         window.addEventListener('beforeunload', function (e) {
+            // 保存当前文件的滚动位置
+            if (currentFile && currentFile.path) {
+                saveFileScrollPosition(currentFile.path);
+            }
+
             if (isDirty) {
                 e.preventDefault();
                 e.returnValue = '您有未保存的更改，确定要离开吗？';
                 return '您有未保存的更改，确定要离开吗？';
             }
         });
+
+        // 初始化滚动监听器
+        setupScrollListener();
 
         // 处理窗口大小变化
         $(window).on('resize', function () {
@@ -715,7 +1531,123 @@
                     vditor.resize();
                 }, 100);
             }
+
+            // On mobile devices, ensure proper layout after resize
+            if (window.innerWidth <= 576) {
+                $('.main-container').css('height', '100vh');
+                adjustEditorHeight(); // 调整编辑器高度
+            } else {
+                // 在桌面端恢复原始行为
+                if (vditor) {
+                    vditor.resize();
+                }
+            }
         });
+
+        // Handle orientation change for mobile devices
+        $(window).on('orientationchange', function () {
+            setTimeout(() => {
+                if (window.innerWidth <= 576) {
+                    // 在移动端调整编辑器高度
+                    adjustEditorHeight();
+                } else {
+                    // 在桌面端正常处理
+                    if (vditor) {
+                        vditor.resize();
+                    }
+                    if (tree) {
+                        tree.jstree('redraw');
+                    }
+                }
+            }, 300); // Delay to allow orientation change to complete
+        });
+
+        // 移动端侧边栏控制
+        function setupMobileSidebar() {
+            const sidebarToggle = document.getElementById('mobile-sidebar-toggle');
+            const treeContainer = document.getElementById('tree-container');
+            const backdrop = document.getElementById('overlay-backdrop');
+
+            if (!sidebarToggle || !treeContainer || !backdrop) {
+                return;
+            }
+
+            // 切换侧边栏显示/隐藏
+            sidebarToggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                treeContainer.classList.add('sidebar-open');
+                backdrop.classList.add('visible');
+
+                // 确保侧边栏高度为100vh
+                treeContainer.style.height = '100vh';
+
+                // 在移动设备上，确保编辑器失去焦点以防止键盘问题
+                if (vditor) {
+                    vditor.focus();
+                    vditor.blur();
+                }
+            });
+
+            // 点击遮罩层关闭侧边栏
+            backdrop.addEventListener('click', function () {
+                treeContainer.classList.remove('sidebar-open');
+                backdrop.classList.remove('visible');
+
+                // 确保编辑器调整大小
+                setTimeout(() => {
+                    if (vditor) {
+                        vditor.resize();
+                    }
+                }, 350);
+            });
+
+            // 点击文件树内的元素后，如果是文件则关闭侧边栏，如果是文件夹则不关闭（全屏模式下更及时响应）
+            $('#file-tree').on('click', 'a', function (event) {
+                if (window.innerWidth <= 576) {
+                    // 获取被点击的节点
+                    const nodeId = $(this).closest('li').attr('id');
+                    const node = tree.jstree('get_node', nodeId);
+
+                    // 只有在点击文件时才关闭侧边栏
+                    if (node && node.type === 'file') {
+                        // 关闭侧边栏
+                        treeContainer.classList.remove('sidebar-open');
+                        backdrop.classList.remove('visible');
+
+                        // 延迟调整编辑器大小以确保动画完成
+                        setTimeout(() => {
+                            if (vditor) {
+                                vditor.resize();
+                            }
+                        }, 350); // 稍长于过渡动画的时间
+                    }
+                    // 如果是文件夹，则不关闭侧边栏，允许展开操作
+                }
+            });
+
+            // 处理窗口大小变化 - 如果从移动视图切换到桌面视图，确保侧边栏关闭
+            $(window).on('resize', function () {
+                if (window.innerWidth > 576) {
+                    treeContainer.classList.remove('sidebar-open');
+                    backdrop.classList.remove('visible');
+                } else {
+                    // 在移动端，如果侧边栏是打开的，确保它保持正确的全屏状态
+                    if (treeContainer.classList.contains('sidebar-open')) {
+                        treeContainer.style.height = '100vh';
+                    }
+                }
+
+                // 调整编辑器大小
+                setTimeout(() => {
+                    if (vditor) {
+                        vditor.resize();
+                    }
+                }, 100);
+            });
+        }
+
+        // 初始化移动端侧边栏功能
+        setupMobileSidebar();
 
         // 初始检查认证状态
         if (!checkAuth()) {
