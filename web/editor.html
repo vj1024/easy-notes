@@ -8,655 +8,903 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css"/>
     <link rel="stylesheet" href="https://unpkg.com/vditor@3.11.2/dist/index.css"/>
     <style>
-        * {
-            box-sizing: border-box;
+        :root {
+            --primary: #5645d4;
+            --primary-pressed: #4534b3;
+            --primary-deep: #3a2a99;
+            --on-primary: #ffffff;
+            --brand-navy: #0a1530;
+            --link-blue: #0075de;
+            --canvas: #ffffff;
+            --surface: #f6f5f4;
+            --surface-soft: #fafaf9;
+            --hairline: #e5e3df;
+            --hairline-soft: #ede9e4;
+            --hairline-strong: #c8c4be;
+            --ink: #1a1a1a;
+            --charcoal: #37352f;
+            --slate: #5d5b54;
+            --steel: #787671;
+            --stone: #a4a097;
+            --muted: #bbb8b1;
+            --semantic-success: #1aae39;
+            --semantic-warning: #dd5b00;
+            --semantic-error: #e03131;
+            --card-tint-lavender: #e6e0f5;
+            --card-tint-sky: #dcecfa;
+            --card-tint-mint: #d9f3e1;
+            --card-tint-peach: #ffe8d4;
+            --card-tint-rose: #fde0ec;
+            --card-tint-yellow: #fef7d6;
+            --error-bg: #fdecea;
+            --modal-overlay: rgba(10, 21, 48, 0.4);
+            --vditor-theme: classic;
         }
 
-        :root {
-            --primary-color: #4361ee;
-            --primary-light: #4895ef;
-            --secondary-color: #3a0ca3;
-            --accent-color: #f72585;
-            --background-color: #f8f9fa;
-            --surface-color: #ffffff;
-            --text-primary: #212529;
-            --text-secondary: #6c757d;
-            --border-color: #e0e0e0;
-            --success-color: #4cc9f0;
-            --warning-color: #f8961e;
-            --error-color: #f72585;
-            --sidebar-bg: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
-            --header-bg: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
-            --status-bg: linear-gradient(180deg, #e9ecef 0%, #dee2e6 100%);
+        /* ====== Dark Theme ====== */
+        :root[data-theme="dark"] {
+            --primary: #7c6ef0;
+            --primary-pressed: #6b5dd6;
+            --primary-deep: #5645d4;
+            --on-primary: #ffffff;
+            --brand-navy: #0a1530;
+            --link-blue: #4a9eff;
+            --canvas: #0f0f0e;
+            --surface: #1a1a19;
+            --surface-soft: #161615;
+            --hairline: #2a2928;
+            --hairline-soft: #232221;
+            --hairline-strong: #3a3938;
+            --ink: #e8e6e3;
+            --charcoal: #d4d2cc;
+            --slate: #a8a59f;
+            --steel: #8b8985;
+            --stone: #6b6964;
+            --muted: #4a4845;
+            --semantic-success: #2dd966;
+            --semantic-warning: #ff8c42;
+            --semantic-error: #ff6b6b;
+            --card-tint-lavender: #2d2540;
+            --card-tint-sky: #1a2940;
+            --card-tint-mint: #1a3328;
+            --card-tint-peach: #3d2818;
+            --card-tint-rose: #3d1a2a;
+            --card-tint-yellow: #332c18;
+            --error-bg: #3d1a1a;
+            --modal-overlay: rgba(0, 0, 0, 0.6);
+            --vditor-theme: dark;
         }
+
+        body, .sidebar, .editor-area, .modal, .context-menu, .status-bar, .editor-topbar {
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 0;
-            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             height: 100vh;
             display: flex;
             overflow: hidden;
-            background-color: var(--background-color);
-            color: var(--text-primary);
-            background-image: radial-gradient(circle at 10% 20%, rgba(67, 97, 238, 0.05) 0%, transparent 20%),
-            radial-gradient(circle at 90% 80%, rgba(58, 12, 163, 0.05) 0%, transparent 20%);
+            background: var(--surface);
+            color: var(--ink);
         }
 
-        .main-container {
+        /* ====== 主容器 ====== */
+        .app {
             display: flex;
             width: 100%;
             height: 100%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border-radius: 16px;
-            overflow: visible; /* 确保侧边栏可以溢出显示 */
-            margin: 12px;
-            background: var(--surface-color);
         }
 
-        .tree-container {
-            width: 15%;
+        /* ====== 侧边栏 ====== */
+        .sidebar {
+            width: 260px;
             min-width: 200px;
-            max-width: 35%;
+            max-width: 400px;
             height: 100%;
-            background: var(--sidebar-bg);
+            background: var(--canvas);
+            border-right: 1px solid var(--hairline);
             display: flex;
             flex-direction: column;
             position: relative;
-            border-right: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
-            background-clip: padding-box;
+            flex-shrink: 0;
         }
 
+        /* 侧边栏头部 */
+        .sidebar-header {
+            padding: 14px 12px 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .theme-toggle svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .theme-toggle {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--slate);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, color 0.15s;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle:hover {
+            background: var(--surface);
+            color: var(--ink);
+        }
+
+        .sidebar-actions {
+            display: flex;
+            gap: 4px;
+            padding: 0 4px;
+            margin-bottom: 8px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 6px 8px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--slate);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-family: inherit;
+        }
+
+        .action-btn:hover {
+            background: var(--surface);
+            color: var(--ink);
+        }
+
+        .action-btn.danger:hover {
+            background: var(--error-bg);
+            color: var(--semantic-error);
+        }
+
+        .action-btn .icon {
+            font-size: 14px;
+        }
+
+        .sidebar-brand-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-brand-logo {
+            width: 22px;
+            height: 22px;
+            background: var(--primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--on-primary);
+        }
+
+        .sidebar-brand-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink);
+            letter-spacing: -0.3px;
+        }
+
+        /* 操作按钮栏 */
+
+
+
+
+
+        /* 搜索框 */
+        .search-box {
+            padding: 0 4px;
+            margin-bottom: 4px;
+        }
+
+        .search-input-wrap {
+            position: relative;
+        }
+
+        .search-input-wrap .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--stone);
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 7px 12px 7px 32px;
+            border: 1px solid var(--hairline);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--ink);
+            background: var(--surface-soft);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+            font-family: inherit;
+        }
+
+        .search-input::placeholder { color: var(--stone); }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(86, 69, 212, 0.12);
+            background: var(--canvas);
+        }
+
+        .search-stats {
+            padding: 4px 8px;
+            font-size: 11px;
+            color: var(--stone);
+            font-style: italic;
+        }
+
+        /* 文件树 */
+        #file-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 4px;
+        }
+
+        /* 拖拽手柄 */
         .resize-handle {
-            width: 10px;
+            width: 8px;
             height: 100%;
             background: transparent;
             cursor: col-resize;
             position: absolute;
-            right: -5px;
+            right: -4px;
             top: 0;
             z-index: 10;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            transition: background 0.2s;
         }
 
-        .resize-handle::after {
-            content: "⋮";
-            writing-mode: vertical-lr;
-            letter-spacing: 3px;
-            color: var(--text-secondary);
-            opacity: 0.4;
-            font-size: 14px;
-        }
+        .resize-handle:hover { background: var(--primary); opacity: 0.5; }
+        .resize-handle.active { background: var(--primary); opacity: 0.8; }
 
-        .resize-handle:hover {
-            background: var(--primary-color);
-        }
-
-        .resize-handle:hover::after {
-            opacity: 1;
-            color: white;
-        }
-
-        .resize-handle.active {
-            background: var(--secondary-color);
-        }
-
-        .search-box {
-            padding: 18px 15px 15px;
-            border-bottom: 1px solid var(--border-color);
-            flex-shrink: 0;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 12px 20px 12px 45px;
-            border: 1px solid var(--border-color);
-            border-radius: 50px;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            background: var(--surface-color);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            position: relative;
-        }
-
-        .search-box input::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .search-box input:focus {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-            transform: translateY(-1px);
-        }
-
-        .search-box::before {
-            content: "🔍";
-            position: absolute;
-            left: 28px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        #file-tree {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px 5px;
-            background: var(--surface-color);
-            height: calc(100% - 60px); /* Account for search box height */
-        }
-
-        .editor-container {
+        /* ====== 编辑器区域 ====== */
+        .editor-area {
             flex: 1;
             height: 100%;
             display: flex;
             flex-direction: column;
-            min-width: 550px;
-            background: var(--surface-color);
+            min-width: 400px;
+            background: var(--canvas);
             overflow: hidden;
         }
 
-        .file-info-bar {
-            display: none;
+        /* 编辑器顶部栏 */
+        .editor-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--hairline-soft);
+            flex-shrink: 0;
+            min-height: 44px;
         }
 
-        .mobile-sidebar-toggle {
-            display: none; /* 默认隐藏在桌面端 */
+        .editor-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        @media (max-width: 576px) {
-            .mobile-sidebar-toggle {
-                position: fixed;
-                top: 15px;
-                left: 15px;
-                z-index: 999;
-                background: var(--primary-color);
-                color: white;
-                border: none;
-                border-radius: 50%;
-                width: 40px;
-                height: 40px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 20px;
-                cursor: pointer;
-                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            }
-
-            .overlay-backdrop {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100vw;
-                height: 100vh;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 998;
-                display: none;
-            }
-
-            .overlay-backdrop.visible {
-                display: block;
-            }
-
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--slate);
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
+        .breadcrumb .sep { color: var(--stone); margin: 0 2px; }
 
+        .breadcrumb .current {
+            color: var(--ink);
+            font-weight: 500;
+        }
+
+        .save-indicator {
+            font-size: 11px;
+            color: var(--stone);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .save-indicator.dirty { color: var(--semantic-warning); }
+        .save-indicator.saved { color: var(--semantic-success); }
+
+        /* 编辑器内容 */
         .editor-content {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            position: relative;
         }
 
         #vditor-container {
             flex: 1;
-            overflow: auto;
-            position: relative;
-            background: var(--surface-color);
-            height: calc(100% - 40px); /* Account for the status bar height */
+            overflow: hidden;
+            background: var(--canvas);
         }
 
+        /* 状态栏 */
         .status-bar {
-            padding: 10px 10px 20px 10px;
-            background: var(--status-bg);
-            border-top: 1px solid var(--border-color);
-            font-size: 13px;
-            color: var(--text-secondary);
+            padding: 6px 16px;
+            background: var(--surface);
+            border-top: 1px solid var(--hairline-soft);
+            font-size: 11px;
+            color: var(--stone);
             flex-shrink: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', monospace;
-            backdrop-filter: blur(10px);
-            box-sizing: border-box;
-            height: 40px;
-            max-height: 40px;
-            overflow: hidden;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
         }
 
+        /* ====== 空状态 ====== */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--stone);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--surface);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin-bottom: 20px;
+            border: 1px solid var(--hairline);
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--charcoal);
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+            color: var(--stone);
+            line-height: 1.5;
+        }
+
+        /* 加载状态 */
         .loading {
             text-align: center;
             padding: 60px 20px;
-            color: var(--text-secondary);
-            font-style: italic;
-            font-size: 16px;
+            color: var(--stone);
+            font-size: 14px;
         }
 
         .loading::before {
             content: "";
             display: block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(67, 97, 238, 0.2);
-            border-top: 4px solid var(--primary-color);
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--hairline);
+            border-top: 3px solid var(--primary);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
         }
 
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .error {
-            color: var(--error-color);
-            padding: 15px 20px;
-            background: #fdecea;
-            border-left: 4px solid var(--error-color);
-            border-radius: 0 8px 8px 0;
-            margin: 15px 20px;
-            font-size: 14px;
-            box-shadow: 0 2px 8px rgba(247, 37, 133, 0.1);
-        }
-
-        .no-file-selected {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            color: var(--text-secondary);
-            font-size: 18px;
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .no-file-selected::before {
-            content: "📝";
-            font-size: 64px;
-            margin-bottom: 20px;
-            opacity: 0.7;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .search-stats {
-            margin-top: 10px;
+        .error-box {
+            color: var(--semantic-error);
+            padding: 12px 16px;
+            background: var(--error-bg);
+            border-radius: 8px;
+            margin: 16px;
             font-size: 13px;
-            color: var(--text-secondary);
-            padding: 0 5px;
-            text-align: center;
-            font-style: italic;
+            border-left: 3px solid var(--semantic-error);
         }
 
-        #vditor {
-            height: 100% !important;
-            max-height: 100%;
-        }
-
+        /* ====== 未授权状态 ====== */
         .unauthorized {
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100%;
             flex-direction: column;
-            background: var(--background-color);
-            padding: 20px;
+            gap: 16px;
         }
 
-        .unauthorized-message {
-            color: var(--error-color);
-            font-size: 20px;
-            margin-bottom: 25px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        .login-button {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            border: none;
-            padding: 14px 30px;
-            border-radius: 50px;
-            cursor: pointer;
+        .unauthorized-msg {
+            color: var(--semantic-error);
             font-size: 15px;
             font-weight: 500;
-            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            font-weight: 600;
         }
 
-        .login-button:hover {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.4);
-        }
-
-        .login-button:active {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
-        }
-
-        /* JSTree 样式定制 */
-        .jstree-default .jstree-clicked {
-            background: rgba(67, 97, 238, 0.15) !important;
-            border-radius: 4px;
-            box-shadow: inset 0 0 1px var(--primary-color);
-        }
-
-        .jstree-default .jstree-hovered {
-            background: rgba(67, 97, 238, 0.1) !important;
-            border-radius: 4px;
-            transition: background 0.2s ease;
-        }
-
-        .jstree-default .jstree-anchor {
-            border-radius: 4px;
-            margin: 1px 0;
-            padding: 0 4px !important;
-            height: 26px;
-            line-height: 26px;
+        .btn-primary {
+            padding: 10px 24px;
+            background: var(--primary);
+            color: var(--on-primary);
+            border: none;
+            border-radius: 8px;
             font-size: 14px;
-            cursor: pointer; /* 确保光标样式正确 */
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s;
         }
 
-        /* 防止悬停时显示链接提示 */
-        .jstree-anchor {
-            pointer-events: auto !important;
+        .btn-primary:hover { background: var(--primary-deep); }
+
+        /* ====== 右键菜单 ====== */
+        .context-menu {
+            position: fixed;
+            background: var(--canvas);
+            border: 1px solid var(--hairline);
+            border-radius: 10px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            padding: 4px;
+            z-index: 10000;
+            min-width: 180px;
+            display: none;
+        }
+
+        .ctx-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--charcoal);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.1s;
+        }
+
+        .ctx-item:hover { background: var(--surface); }
+
+        .ctx-item.danger { color: var(--semantic-error); }
+        .ctx-item.danger:hover { background: var(--error-bg); }
+
+        .ctx-divider {
+            height: 1px;
+            background: var(--hairline-soft);
+            margin: 4px 0;
+        }
+
+        /* ====== 弹窗 ====== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-overlay);
+            z-index: 10001;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--canvas);
+            border-radius: 14px;
+            padding: 24px;
+            min-width: 380px;
+            max-width: 90vw;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 16px;
+            letter-spacing: -0.3px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--hairline-strong);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--ink);
+            background: var(--canvas);
+            outline: none;
+            margin-bottom: 16px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            font-family: inherit;
+            height: 40px;
+        }
+
+        .modal input::placeholder { color: var(--stone); }
+
+        .modal input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(86, 69, 212, 0.12);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .modal-actions button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--hairline);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .btn-cancel {
+            background: var(--canvas);
+            color: var(--charcoal);
+        }
+
+        .btn-cancel:hover { background: var(--surface); }
+
+        .btn-confirm {
+            background: var(--primary);
+            color: var(--on-primary);
+            border-color: var(--primary);
+        }
+
+        .btn-confirm:hover { background: var(--primary-deep); }
+
+        .btn-danger-confirm {
+            background: var(--semantic-error);
+            color: #fff;
+            border-color: var(--semantic-error);
+        }
+
+        .btn-danger-confirm:hover { background: #c62828; }
+
+        .delete-message {
+            margin: 0 0 16px;
+            color: var(--slate);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* ====== jsTree 定制 ====== */
+        .jstree-default .jstree-anchor {
+            border-radius: 6px !important;
+            margin: 1px 0;
+            padding: 0 8px !important;
+            height: 28px !important;
+            line-height: 28px !important;
+            font-size: 13px !important;
+            cursor: pointer;
+            color: var(--charcoal);
+            transition: background-color 0.12s ease, color 0.12s ease;
+        }
+
+        /* hover */
+        .jstree-default .jstree-hovered {
+            background: var(--surface) !important;
+            box-shadow: none !important;
+            color: var(--ink) !important;
+        }
+
+        /* 选中态 - light: 柔和淡紫底 + 深紫字 + 左侧紫色指示条 */
+        .jstree-default .jstree-clicked {
+            background: rgba(86, 69, 212, 0.1) !important;
+            color: var(--primary) !important;
+            box-shadow: none !important;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .jstree-default .jstree-clicked::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            border-radius: 0 3px 3px 0;
+            background: var(--primary);
+        }
+
+        /* dark 模式选中态 - 半透明紫 + 亮紫字 */
+        :root[data-theme="dark"] .jstree-default .jstree-clicked {
+            background: rgba(124, 110, 240, 0.15) !important;
+            color: #a89cff !important;
+        }
+
+        :root[data-theme="dark"] .jstree-default .jstree-clicked::before {
+            background: #a89cff;
+        }
+
+        :root[data-theme="dark"] .jstree-default .jstree-hovered {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: var(--ink) !important;
+        }
+
+        :root[data-theme="dark"] .jstree-default .jstree-anchor {
+            color: var(--charcoal);
         }
 
         .jstree-default .jstree-icon {
-            line-height: 26px;
-            width: 20px;
-            text-align: center;
+            line-height: 28px !important;
         }
 
-        .jstree-default .jstree-leaf > .jstree-ocl {
+        .jstree-default .jstree-themeicon { font-size: 12px; }
+
+        /* ====== 滚动条 ====== */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--hairline-strong); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--stone); }
+
+        /* ====== Vditor 覆盖 ====== */
+        #vditor { height: 100% !important; max-height: 100%; }
+
+        /* ====== Vditor Dark Mode 覆盖 ====== */
+        :root[data-theme="dark"] .vditor {
+            background-color: var(--canvas) !important;
+            border-color: var(--hairline) !important;
+        }
+        :root[data-theme="dark"] .vditor-toolbar {
+            background-color: var(--surface) !important;
+            border-color: var(--hairline) !important;
+        }
+        :root[data-theme="dark"] .vditor-toolbar .vditor-tooltipped {
+            color: var(--slate) !important;
+        }
+        :root[data-theme="dark"] .vditor-toolbar .vditor-tooltipped:hover {
+            color: var(--ink) !important;
+            background-color: var(--surface-soft) !important;
+        }
+        :root[data-theme="dark"] .vditor-content {
+            background-color: var(--canvas) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-textarea {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-sv {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-wysiwyg {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-ir {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-preview {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-outline {
+            background-color: var(--surface) !important;
+            border-color: var(--hairline) !important;
+        }
+        :root[data-theme="dark"] .vditor-outline__title {
+            color: var(--steel) !important;
+        }
+        :root[data-theme="dark"] .vditor-outline__content li span,
+        :root[data-theme="dark"] .vditor-outline__content li a,
+        :root[data-theme="dark"] .vditor-outline__content li {
+            color: var(--steel) !important;
+        }
+        :root[data-theme="dark"] .vditor-outline__content li span:hover,
+        :root[data-theme="dark"] .vditor-outline__content li a:hover {
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-outline .vditor-outline__item--current,
+        :root[data-theme="dark"] .vditor-outline__content li.vditor-outline__item--current span {
+            color: var(--primary) !important;
+            background-color: var(--surface-soft) !important;
+        }
+        :root[data-theme="dark"] .vditor-hint {
+            background-color: var(--surface) !important;
+            border-color: var(--hairline-strong) !important;
+        }
+        :root[data-theme="dark"] .vditor-hint .vditor-hint__item {
+            color: var(--charcoal) !important;
+        }
+        :root[data-theme="dark"] .vditor-hint .vditor-hint__item--current {
+            background-color: var(--primary) !important;
+            color: var(--on-primary) !important;
+        }
+        :root[data-theme="dark"] .vditor-tip {
+            background-color: var(--surface) !important;
+            color: var(--charcoal) !important;
+        }
+        :root[data-theme="dark"] .vditor-export__item {
+            color: var(--charcoal) !important;
+        }
+        :root[data-theme="dark"] .vditor-export__item:hover {
+            background-color: var(--surface-soft) !important;
+        }
+        :root[data-theme="dark"] .vditor-comment {
+            background-color: var(--surface) !important;
+            border-color: var(--hairline) !important;
+        }
+        :root[data-theme="dark"] .vditor-input {
+            border-color: var(--hairline-strong) !important;
+            color: var(--ink) !important;
+            background: var(--canvas) !important;
+        }
+        :root[data-theme="dark"] .vditor-input:focus {
+            border-color: var(--primary) !important;
+        }
+        :root[data-theme="dark"] .vditor-button {
+            color: var(--charcoal) !important;
+            border-color: var(--hairline-strong) !important;
+        }
+        :root[data-theme="dark"] .vditor-button--current {
+            color: var(--primary) !important;
+            border-color: var(--primary) !important;
+        }
+        :root[data-theme="dark"] code,
+        :root[data-theme="dark"] pre {
+            background: var(--surface) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset code {
+            background: var(--surface) !important;
+            color: var(--charcoal) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset pre {
+            background: var(--surface-soft) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset blockquote {
+            color: var(--slate) !important;
+            border-color: var(--hairline-strong) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset table td,
+        :root[data-theme="dark"] .vditor-reset table th {
+            border-color: var(--hairline) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset table tr:nth-child(2n) {
+            background: var(--surface-soft) !important;
+        }
+
+        /* ====== 移动端 ====== */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 10px; left: 10px;
+            z-index: 999;
+            background: var(--primary);
+            color: var(--on-primary);
+            border: none;
+            border-radius: 10px;
+            width: 40px; height: 40px;
+            font-size: 18px;
             cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
 
-        .jstree-default .jstree-wholerow {
-            height: 26px;
+        .overlay-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--modal-overlay);
+            z-index: 998;
+            display: none;
+            backdrop-filter: blur(2px);
         }
 
-        /* 滚动条样式 */
-        ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--text-secondary);
-            border-radius: 10px;
-            transition: background 0.3s;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--primary-color);
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 1200px) {
-            .tree-container {
-                width: 32%;
-                min-width: 250px;
-            }
-
-            .editor-container {
-                min-width: 450px;
-            }
-        }
-
-        @media (max-width: 992px) {
-            .tree-container {
-                width: 35%;
-                min-width: 220px;
-            }
-
-            .editor-container {
-                min-width: 400px;
-            }
-        }
+        .overlay-backdrop.visible { display: block; }
 
         @media (max-width: 768px) {
-            .main-container {
-                flex-direction: column;
-                margin: 5px;
-                height: calc(100vh - 10px); /* Adjust for margin */
-            }
-
-            .tree-container {
-                width: 100%;
-                height: 40%;
-                min-height: 250px;
-                max-height: 40vh;
-            }
-
-            .editor-container {
-                width: 100%;
-                height: 60%;
-                min-height: 300px;
-                max-height: 60vh;
-            }
-
-            .resize-handle {
-                width: 100%;
-                height: 10px;
-                top: -5px;
-                left: 0;
-            }
-
-            .resize-handle::after {
-                writing-mode: horizontal-tb;
-                letter-spacing: 3px;
-            }
-
-            .search-box {
-                padding: 12px 10px 10px;
-            }
-
-            .search-box input {
-                padding: 10px 15px 10px 40px;
-                font-size: 14px;
-            }
-
-            .status-bar {
-                padding: 8px 8px 15px 8px;
-                font-size: 12px;
-                height: 35px;
-                max-height: 35px;
-            }
-        }
-
-        /* Mobile devices - Updated */
-        @media (max-width: 576px) {
-            body {
-                margin: 0;
-                padding: 0;
-                height: 100vh;
-                overflow: hidden;
-            }
-
-            .main-container {
-                margin: 0;
-                border-radius: 0;
-                height: 100vh;
-                flex-direction: column;
-                box-shadow: none;
-                overflow: hidden;
-            }
-
-            .tree-container {
+            .sidebar {
                 position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
+                top: 0; left: 0;
                 width: 100vw !important;
                 height: 100vh !important;
                 max-width: none !important;
                 z-index: 1001 !important;
-                transform: translateX(-100%) !important;
-                transition: transform 0.3s ease !important;
-                background: var(--sidebar-bg) !important;
-                border-right: 1px solid var(--border-color) !important;
-                display: flex !important;
-                flex-direction: column !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                box-sizing: border-box !important;
-                pointer-events: auto !important;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
             }
 
-            .tree-container.sidebar-open {
-                transform: translateX(0) !important;
-            }
+            .sidebar.sidebar-open { transform: translateX(0); }
 
-            .editor-container {
-                width: 100% !important;
-                height: 100vh !important;
-                min-height: auto !important;
-                max-height: none !important;
-                position: static !important;
-            }
+            .mobile-toggle { display: flex; align-items: center; justify-content: center; }
 
-            #vditor-container {
-                height: calc(100vh - 40px) !important; /* Full height minus status bar */
-                max-height: none !important;
-            }
+            .editor-area { min-width: 0; width: 100%; }
 
-            .search-box {
-                padding: 10px 8px 8px !important;
-                flex-shrink: 0 !important;
-                position: sticky !important;
-                top: 0 !important;
-                background: var(--sidebar-bg) !important;
-                z-index: 10 !important;
-                width: 100% !important;
-                box-sizing: border-box !important;
-            }
-
-            .search-box input {
-                padding: 8px 12px 8px 35px !important;
-                font-size: 14px !important;
-            }
-
-            .search-stats {
-                font-size: 11px !important;
-                margin-top: 8px !important;
-            }
-
-            #file-tree {
-                height: 100% !important;
-                flex: 1 1 auto !important;
-                overflow-y: auto !important;
-                min-height: 0; /* Allow flex child to shrink */
-                box-sizing: border-box !important;
-            }
-
-            .jstree-default .jstree-anchor {
-                height: 30px !important;
-                line-height: 30px !important;
-                font-size: 13px !important;
-                padding: 0 2px !important;
-            }
-
-            /* 自定义图标样式 */
-            .jstree-default .jstree-themeicon {
-                font-size: 8px;
-                width: 8px;
-                height: 8px;
-            }
-
-            .status-bar {
-                padding: 6px 6px 12px 6px !important;
-                font-size: 11px !important;
-                height: 30px !important;
-                max-height: 30px !important;
-                position: fixed !important;
-                bottom: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                z-index: 997 !important;
-            }
-
-            .resize-handle {
-                display: none !important;
-            }
-
-            .file-info-bar {
-                display: none !important;
-            }
-
+            .resize-handle { display: none !important; }
         }
 
-        /* Very small screens */
         @media (max-width: 400px) {
-            .jstree-default .jstree-anchor {
-                height: 28px;
-                line-height: 28px;
-                font-size: 12px;
-            }
-
-            .search-box input {
-                padding: 7px 10px 7px 30px;
-                font-size: 12px;
-            }
-
-            .search-stats {
-                font-size: 10px;
-            }
-
-            #file-tree {
-                height: calc(100% - 45px);
-            }
+            .sidebar-actions { flex-wrap: wrap; }
+            .modal { min-width: 300px; padding: 20px; }
         }
     </style>
 </head>
+</head>
 <body>
-<!-- Mobile sidebar toggle button -->
-<button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" title="文件列表">
-    📂
-</button>
 
-<!-- Overlay backdrop -->
+<button class="mobile-toggle" id="mobile-toggle">📂</button>
 <div class="overlay-backdrop" id="overlay-backdrop"></div>
 
-<div class="main-container">
-    <div class="tree-container" id="tree-container">
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="🔍 搜索文件名或内容...">
+<div class="app">
+    <!-- 侧边栏 -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-left">
+                    <div class="sidebar-brand-logo">📝</div>
+                    <div class="sidebar-brand-name">EasyNotes</div>
+                </div>
+                <button class="theme-toggle" id="theme-toggle" title="切换主题 (亮/暗/自动)">☀</button>
+            </div>
+            <div class="sidebar-actions">
+                <button class="action-btn" id="btn-new-file" title="新建文件">
+                    <span class="icon">+</span> 文件
+                </button>
+                <button class="action-btn" id="btn-new-folder" title="新建文件夹">
+                    <span class="icon">+</span> 文件夹
+                </button>
+                <button class="action-btn danger" id="btn-delete" title="删除">
+                    <span class="icon">🗑</span>
+                </button>
+            </div>
+            <div class="search-box">
+                <div class="search-input-wrap">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input" id="search-input" placeholder="搜索文件名或内容...">
+                </div>
+            </div>
             <div class="search-stats" id="search-stats"></div>
         </div>
         <div id="file-tree">
@@ -665,20 +913,74 @@
         <div class="resize-handle" id="resize-handle"></div>
     </div>
 
-    <div class="editor-container">
-        <div class="file-info-bar" id="file-info-bar">
-            <div>
-                <span id="file-title">未选择文件</span>
+    <!-- 编辑器 -->
+    <div class="editor-area">
+        <div class="editor-topbar" id="editor-topbar">
+            <div class="editor-topbar-left">
+                <div class="breadcrumb" id="breadcrumb">
+                    <span class="current">EasyNotes</span>
+                </div>
             </div>
+            <div class="save-indicator" id="save-indicator"></div>
         </div>
         <div class="editor-content">
             <div id="vditor-container">
-                <div class="no-file-selected">请从左侧选择文件进行编辑</div>
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <h3>选择文件开始编辑</h3>
+                    <p>从左侧选择一个文件，或创建新文件</p>
+                </div>
             </div>
         </div>
         <div class="status-bar" id="status-bar">
-            <div id="file-path-display">未选择文件</div>
-            <div id="status-message">就绪</div>
+            <div id="status-left">就绪</div>
+            <div id="status-right"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 右键菜单 -->
+<div class="context-menu" id="context-menu">
+    <div id="ctx-folder-items" style="display:none">
+        <div class="ctx-item" data-action="new-file">📄 新建文件</div>
+        <div class="ctx-item" data-action="new-folder">📁 新建文件夹</div>
+        <div class="ctx-divider"></div>
+    </div>
+    <div class="ctx-item danger" data-action="delete">🗑 删除</div>
+</div>
+
+<!-- 新建文件弹窗 -->
+<div class="modal-overlay" id="modal-new-file">
+    <div class="modal">
+        <h3>新建文件</h3>
+        <input type="text" id="input-new-file" placeholder="输入文件名，如 notes.md" autocomplete="off">
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal('modal-new-file')">取消</button>
+            <button class="btn-confirm" id="btn-confirm-new-file">创建</button>
+        </div>
+    </div>
+</div>
+
+<!-- 新建文件夹弹窗 -->
+<div class="modal-overlay" id="modal-new-folder">
+    <div class="modal">
+        <h3>新建文件夹</h3>
+        <input type="text" id="input-new-folder" placeholder="输入文件夹名" autocomplete="off">
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal('modal-new-folder')">取消</button>
+            <button class="btn-confirm" id="btn-confirm-new-folder">创建</button>
+        </div>
+    </div>
+</div>
+
+<!-- 删除确认弹窗 -->
+<div class="modal-overlay" id="modal-delete">
+    <div class="modal">
+        <h3>确认删除</h3>
+        <p class="delete-message" id="delete-message"></p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal('modal-delete')">取消</button>
+            <button class="btn-danger-confirm" id="btn-confirm-delete">删除</button>
         </div>
     </div>
 </div>
@@ -687,973 +989,641 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
 <script src="https://unpkg.com/vditor@3.11.2/dist/index.min.js"></script>
 <script>
-    $(function () {
-        const BASE_URL = ""
-        let currentSearchTerm = '';
-        let searchTimeout = null;
-        let vditor = null;
-        let currentFile = null;
-        let saveInterval = null;
-        let isDirty = false;
-        let lastSaveTime = null;
-        let isResizing = false;
+// ====== 主题管理 (提前执行避免闪烁) ======
+const THEME_KEY = 'easynotes-theme';
 
-        // 初始化拖动调整大小功能
-        initResizeHandler();
+function getStoredTheme() { return localStorage.getItem(THEME_KEY) || 'auto'; }
 
-        // 检查认证状态
-        function checkAuth() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                redirectToLogin();
-                return false;
-            }
-            return true;
+function resolveTheme(theme) {
+    if (theme === 'auto') return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return theme;
+}
+
+function getVditorThemeName(resolved) { return resolved === 'dark' ? 'dark' : 'classic'; }
+
+// 立即应用主题
+(function applyInitialTheme() {
+    const resolved = resolveTheme(getStoredTheme());
+    document.documentElement.setAttribute('data-theme', resolved);
+})();
+
+// 监听浏览器主题变化 (auto 模式下自动跟随)
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (getStoredTheme() === 'auto') {
+        const resolved = resolveTheme('auto');
+        document.documentElement.setAttribute('data-theme', resolved);
+        if (window.vditorInstance) {
+            try { window.vditorInstance.setTheme(getVditorThemeName(resolved)); } catch(e) {}
         }
+        updateThemeToggleIcon();
+    }
+});
 
-        // 跳转到登录页
-        function redirectToLogin() {
-            window.location.href = '/login';
-        }
+function updateThemeToggleIcon() {
+    const btn = document.getElementById('theme-toggle');
+    if (!btn) return;
+    const stored = getStoredTheme();
+    if (stored === 'auto') btn.textContent = '🖥';
+    else if (resolveTheme(stored) === 'dark') btn.textContent = '🌙';
+    else btn.textContent = '☀';
+}
 
-        // 处理401错误
-        function handleUnauthorized() {
-            // 清空token
-            localStorage.removeItem('token');
+function cycleTheme() {
+    const current = getStoredTheme();
+    const next = current === 'light' ? 'dark' : current === 'dark' ? 'auto' : 'light';
+    localStorage.setItem(THEME_KEY, next);
+    const resolved = resolveTheme(next);
+    document.documentElement.setAttribute('data-theme', resolved);
+    // 同步 Vditor 主题
+    if (window.vditorInstance) {
+        try { window.vditorInstance.setTheme(getVditorThemeName(resolved)); } catch(e) {}
+    }
+    updateThemeToggleIcon();
+}
 
-            // 显示未授权提示
-            $('#vditor-container').html(`
-                    <div class="unauthorized">
-                        <div class="unauthorized-message">登录已过期，请重新登录</div>
-                        <button class="login-button" id="login-button">前往登录</button>
-                    </div>
-                `);
+$(function () {
+    const BASE_URL = "";
+    let currentSearchTerm = '';
+    let searchTimeout = null;
+    let vditor = null;
+    let currentFile = null;
+    let saveInterval = null;
+    let isDirty = false;
+    let lastSaveTime = null;
+    let isResizing = false;
 
-            // 绑定登录按钮事件
-            $('#login-button').on('click', function () {
-                redirectToLogin();
+    initResizeHandler();
+
+    // 绑定主题切换按钮
+    updateThemeToggleIcon();
+    $('#theme-toggle').on('click', cycleTheme);
+
+    // ====== 认证 ======
+    function checkAuth() {
+        const token = localStorage.getItem('token');
+        if (!token) { redirectToLogin(); return false; }
+        return true;
+    }
+
+    function redirectToLogin() { window.location.href = '/login'; }
+
+    function handleUnauthorized() {
+        localStorage.removeItem('token');
+        $('#vditor-container').html(`
+            <div class="unauthorized">
+                <div class="unauthorized-msg">登录已过期，请重新登录</div>
+                <button class="btn-primary" id="login-button">前往登录</button>
+            </div>
+        `);
+        $('#login-button').on('click', redirectToLogin);
+        if (vditor) { vditor.destroy(); vditor = null; }
+        currentFile = null; isDirty = false;
+        setTimeout(redirectToLogin, 2000);
+    }
+
+    function getAuthHeaders() {
+        const token = localStorage.getItem('token');
+        return token ? { 'Authorization': 'Bearer ' + token } : {};
+    }
+
+    function authAjax(options) {
+        if (!checkAuth()) return Promise.reject('未认证');
+        const token = localStorage.getItem('token');
+        options.headers = options.headers || {};
+        if (token) options.headers['Authorization'] = 'Bearer ' + token;
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                ...options,
+                statusCode: {
+                    401: function () { handleUnauthorized(); reject('未授权'); }
+                },
+                success: function (data, ts, xhr) { resolve(data, ts, xhr); },
+                error: function (xhr, ts, err) {
+                    if (xhr.status === 401) handleUnauthorized();
+                    reject(xhr, ts, err);
+                }
             });
+        });
+    }
 
-            // 禁用编辑器功能
-            if (vditor) {
-                vditor.destroy();
-                vditor = null;
-            }
-
-            // 清除当前文件状态
-            currentFile = null;
-            isDirty = false;
-
-            // 2秒后自动跳转
-            setTimeout(redirectToLogin, 2000);
+    // ====== 搜索 ======
+    function updateSearchStats(count) {
+        if (currentSearchTerm.length === 0) {
+            $('#search-stats').text('');
+        } else {
+            $('#search-stats').text(`找到 ${count} 个匹配项`);
         }
+    }
 
-        // 获取认证头
-        function getAuthHeaders() {
-            const token = localStorage.getItem('token');
-            return token ? {
-                'Authorization': 'Bearer ' + token
-            } : {};
+    $('#search-input').on('input', function () {
+        const searchTerm = $(this).val().trim();
+        currentSearchTerm = searchTerm;
+        clearTimeout(searchTimeout);
+        if (searchTerm.length > 0 && searchTerm.replace(/\s+/g, '').length < 2) {
+            $('#search-stats').text('请输入至少2个有效字符');
+            return;
         }
+        searchTimeout = setTimeout(() => {
+            tree.jstree(true).refresh();
+            if (searchTerm.length === 0) $('#search-stats').text('');
+            else $('#search-stats').text('搜索中...');
+        }, 300);
+    });
 
-        // 带认证的AJAX请求
-        function authAjax(options) {
-            // 检查认证状态
-            if (!checkAuth()) {
-                return Promise.reject('未认证');
-            }
-
-            const token = localStorage.getItem('token');
-            options.headers = options.headers || {};
-            if (token) {
-                options.headers['Authorization'] = 'Bearer ' + token;
-            }
-
-            return new Promise((resolve, reject) => {
-                $.ajax({
-                    ...options,
-                    statusCode: {
-                        401: function () {
-                            handleUnauthorized();
-                            reject('未授权');
-                        }
-                    },
-                    success: function (data, textStatus, jqXHR) {
-                        resolve(data, textStatus, jqXHR);
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        if (jqXHR.status === 401) {
-                            handleUnauthorized();
-                        }
-                        reject(jqXHR, textStatus, errorThrown);
-                    }
-                });
-            });
-        }
-
-        // 更新搜索统计信息
-        function updateSearchStats(count) {
-            if (currentSearchTerm.length === 0) {
-                $('#search-stats').text('');
-            } else {
-                $('#search-stats').text(`找到 ${count} 个匹配项`);
-            }
-        }
-
-        // 初始化jstree
-        const tree = $('#file-tree').jstree({
-            'core': {
-                'data': function (obj, callback) {
-                    if (currentSearchTerm) {
-                        // 如果有搜索词，使用搜索API
-                        authAjax({
-                            url: BASE_URL + '/api/files',
-                            method: 'GET',
-                            data: {search: currentSearchTerm},
-                            dataType: 'json'
+    // ====== jsTree ======
+    const tree = $('#file-tree').jstree({
+        'core': {
+            'data': function (obj, callback) {
+                // 过滤掉根目录下的 _images 文件夹
+                function filterTree(nodes, isRoot) {
+                    if (!Array.isArray(nodes)) return nodes;
+                    return nodes.filter(n => {
+                        // 只在根层过滤 _images
+                        if (isRoot && n.text === '_images') return false;
+                        return true;
+                    }).map(n => {
+                        if (n.children && Array.isArray(n.children)) n.children = filterTree(n.children, false);
+                        return n;
+                    });
+                }
+                if (currentSearchTerm) {
+                    authAjax({ url: BASE_URL + '/api/files', method: 'GET', data: { search: currentSearchTerm }, dataType: 'json' })
+                        .then(function (data) {
+                            if (data.results) {
+                                callback.call(this, filterTree(data.results, true));
+                                updateSearchStats(data.results.length);
+                                setTimeout(() => { tree.jstree(true).open_all(); $('#file-tree a').removeAttr('href'); }, 100);
+                            } else { callback.call(this, []); updateSearchStats(0); }
                         })
-                            .then(function (data) {
-                                if (data.results) {
-                                    // 使用搜索结果
-                                    callback.call(this, data.results);
-                                    // 更新搜索统计信息
-                                    updateSearchStats(data.results.length);
-
-                                    // 在数据加载完成后展开所有节点
-                                    setTimeout(function () {
-                                        tree.jstree(true).open_all();
-                                        // 移除所有链接的href属性
-                                        $('#file-tree a').removeAttr('href');
-                                    }, 100);
-                                } else {
-                                    callback.call(this, []);
-                                    updateSearchStats(0);
-                                }
-                            })
-                            .catch(function (error) {
-                                if (error !== '未授权' && error.status !== 401) {
-                                    console.error('搜索失败:', error);
-                                    callback.call(this, []);
-                                    updateSearchStats(0);
-                                }
-                            });
-                    } else {
-                        // 否则使用正常的文件列表API
-                        authAjax({
-                            url: BASE_URL + '/api/files?list=true',
-                            method: 'GET',
-                            dataType: 'json'
+                        .catch(function (e) { if (e !== '未授权' && e.status !== 401) { callback.call(this, []); updateSearchStats(0); } });
+                } else {
+                    authAjax({ url: BASE_URL + '/api/files?list=true', method: 'GET', dataType: 'json' })
+                        .then(function (data) {
+                            callback.call(this, filterTree(data, true));
+                            $('#search-stats').text('');
+                            setTimeout(() => $('#file-tree a').removeAttr('href'), 100);
                         })
-                            .then(function (data) {
-                                callback.call(this, data);
-                                // 当不是搜索模式时，清空搜索统计
-                                if (currentSearchTerm === '') {
-                                    $('#search-stats').text('');
-                                }
-
-                                // 数据加载完成后移除所有链接的href属性
-                                setTimeout(function () {
-                                    $('#file-tree a').removeAttr('href');
-                                }, 100);
-                            })
-                            .catch(function (error) {
-                                if (error !== '未授权' && error.status !== 401) {
-                                    console.error('加载文件列表失败:', error);
-                                    callback.call(this, []);
-                                }
-                            });
-                    }
-                },
-                'themes': {
-                    'responsive': true,
-                    'dots': true,
-                    'icons': true
-                },
-                'error': function (xhr, status, error) {
-                    if (xhr.status === 401) {
-                        handleUnauthorized();
-                    } else {
-                        $('#file-tree').html('<div class="error">加载文件列表失败: ' + error + '</div>');
-                    }
-                },
-                'check_callback': true,
-                'force_text': true  // This prevents HTML injection and potential href issues that cause tooltips
+                        .catch(function (e) { if (e !== '未授权' && e.status !== 401) callback.call(this, []); });
+                }
             },
-            'plugins': ['types', 'wholerow'],
-            'types': {
-                'default': {
-                    'icon': 'jstree-folder'
-                },
-                'file': {
-                    'icon': 'jstree-file'
-                }
-            }
-        });
-
-        // jstree准备就绪后移除所有链接的href属性
-        $('#file-tree').on('ready.jstree', function () {
-            $('#file-tree a').removeAttr('href');
-        });
-
-        // 当节点打开时移除新增链接的href属性
-        $('#file-tree').on('after_open.jstree', function () {
-            setTimeout(function () {
-                $('#file-tree a').removeAttr('href');
-            }, 50);
-        });
-
-        // 当节点关闭时也需要处理
-        $('#file-tree').on('after_close.jstree', function () {
-            setTimeout(function () {
-                $('#file-tree a').removeAttr('href');
-            }, 50);
-        });
-
-        // 搜索功能
-        $('#search-input').on('input', function () {
-            const searchTerm = $(this).val().trim();
-            currentSearchTerm = searchTerm;
-
-            clearTimeout(searchTimeout);
-
-            // 允许空格分隔的多个关键字，只要总长度大于0即可
-            if (searchTerm.length > 0 && searchTerm.replace(/\s+/g, '').length < 2) {
-                $('#search-stats').text('请输入至少2个有效字符');
-                return;
-            }
-
-            // 延迟执行搜索，避免频繁请求
-            searchTimeout = setTimeout(() => {
-                // 重新加载树以应用搜索条件
-                tree.jstree(true).refresh();
-
-                if (searchTerm.length === 0) {
-                    $('#search-stats').text('');
-                } else {
-                    $('#search-stats').text('搜索中...');
-                }
-            }, 300);
-        });
-
-        // 处理节点点击事件
-        tree.on('select_node.jstree', function (e, data) {
-            const node = data.node;
-
-            if (node.type === 'file') {
-                loadFileForEditing(node);
-            } else {
-                // 对于搜索结果，我们只处理文件，不处理文件夹
-                if (node.path) {
-                    // 这是一个搜索结果节点，直接加载文件
-                    loadFileByPath(node.path, node.text);
-                } else {
-                    const filePath = buildFilePath(node);
-                    $('#file-title').text(`文件夹: ${filePath}`);
-                    $('#vditor-container').html('<div class="no-file-selected">请选择文件进行编辑</div>');
-                    if (vditor) {
-                        vditor.destroy();
-                        vditor = null;
-                    }
-                    clearSaveInterval();
-                    currentFile = null;
-                    isDirty = false;
-                }
-            }
-        });
-
-        // 加载文件到编辑器
-        function loadFileForEditing(node) {
-            if (!checkAuth()) return;
-
-            if (isDirty && currentFile && vditor) {
-                if (confirm('当前文件有未保存的更改，是否先保存？')) {
-                    saveCurrentFile().then(() => {
-                        loadNewFile(node);
-                    }).catch(() => {
-                        loadNewFile(node);
-                    });
-                } else {
-                    loadNewFile(node);
-                }
-            } else {
-                loadNewFile(node);
-            }
-        }
-
-        // 根据路径加载文件
-        function loadFileByPath(filePath, fileName) {
-            if (!checkAuth()) return;
-
-            if (isDirty && currentFile && vditor) {
-                if (confirm('当前文件有未保存的更改，是否先保存？')) {
-                    saveCurrentFile().then(() => {
-                        loadNewFileByPath(filePath, fileName);
-                    }).catch(() => {
-                        loadNewFileByPath(filePath, fileName);
-                    });
-                } else {
-                    loadNewFileByPath(filePath, fileName);
-                }
-            } else {
-                loadNewFileByPath(filePath, fileName);
-            }
-        }
-
-        // 加载新文件
-        function loadNewFile(node) {
-            const filePath = buildFilePath(node);
-
-            if (!filePath) {
-                $('#vditor-container').html('<div class="error">无法构建文件路径</div>');
-                return;
-            }
-
-            $('#file-path-display').text(`文件: ${filePath}`);
-            $('#vditor-container').html('<div class="loading">加载文件内容...</div>');
-            $('#status-message').text('加载中...');
-
-            const url = BASE_URL + `/api/files/${filePath}`;
-
-            authAjax({
-                url: url,
-                method: 'GET',
-                dataType: 'text'
-            }).then(function (content) {
-                currentFile = {
-                    id: node.id,
-                    name: node.text,
-                    path: filePath
-                };
-
-                // 从localStorage获取上次的滚动位置
-                const savedPosition = getFileScrollPosition(filePath);
-
-                initEditor(content, savedPosition);
-                $('#status-message').text('就绪');
-                isDirty = false;
-            }).catch(function (error) {
-                if (error.status !== 401) { // 401错误已经在authAjax中处理
-                    $('#vditor-container').html(
-                        '<div class="error">加载文件失败: ' + (error.responseText || error.statusText || '未知错误') + '</div>'
-                    );
-                    $('#status-message').text('加载失败');
-                }
-            });
-        }
-
-        // 根据路径加载新文件
-        function loadNewFileByPath(filePath, fileName) {
-            $('#file-path-display').text(`文件: ${filePath}`);
-            $('#vditor-container').html('<div class="loading">加载文件内容...</div>');
-            $('#status-message').text('加载中...');
-
-            const url = BASE_URL + `/api/files/${filePath}`;
-
-            authAjax({
-                url: url,
-                method: 'GET',
-                dataType: 'text'
-            }).then(function (content) {
-                currentFile = {
-                    id: 'search-' + filePath,
-                    name: fileName,
-                    path: filePath
-                };
-
-                // 从localStorage获取上次的滚动位置
-                const savedPosition = getFileScrollPosition(filePath);
-
-                initEditor(content, savedPosition);
-                $('#status-message').text('就绪');
-                isDirty = false;
-            }).catch(function (error) {
-                if (error.status !== 401) { // 401错误已经在authAjax中处理
-                    $('#vditor-container').html(
-                        '<div class="error">加载文件失败: ' + (error.responseText || error.statusText || '未知错误') + '</div>'
-                    );
-                    $('#status-message').text('加载失败');
-                }
-            });
-        }
-
-        // 更新搜索统计信息
-        function updateSearchStats(count) {
-            if (currentSearchTerm.length === 0) {
-                $('#search-stats').text('');
-            } else {
-                $('#search-stats').text(`找到 ${count} 个匹配项`);
-            }
-        }
-
-        // 构建文件路径
-        function buildFilePath(node) {
-            if (node.id === 'root') {
-                return '';
-            }
-
-            let pathParts = [];
-            let currentNode = node;
-
-            while (currentNode && currentNode.id !== '#' && currentNode.id !== 'root') {
-                if (currentNode.text && currentNode.text !== 'root') {
-                    pathParts.unshift(currentNode.text);
-                }
-                if (currentNode.parent && currentNode.parent !== '#') {
-                    currentNode = tree.jstree('get_node', currentNode.parent);
-                } else {
-                    break;
-                }
-            }
-
-            if (pathParts.length === 0) {
-                return node.text;
-            }
-
-            return pathParts.join('/');
-        }
-
-        // 保存文件滚动位置到localStorage
-        function saveFileScrollPosition(filePath) {
-            if (!vditor || !filePath) return;
-
-            try {
-                const positionData = {
-                    previewScrollTop: 0,
-                    irScrollTop: 0,
-                    svScrollTop: 0,
-                    wysiwygScrollTop: 0,
-                    timestamp: Date.now()
-                };
-
-                // 获取各种模式下的滚动位置
-                if (vditor.vditor && vditor.vditor.preview && vditor.vditor.preview.element) {
-                    positionData.previewScrollTop = vditor.vditor.preview.element.scrollTop;
-                }
-
-                if (vditor.vditor && vditor.vditor.ir && vditor.vditor.ir.element) {
-                    positionData.irScrollTop = vditor.vditor.ir.element.scrollTop;
-                }
-
-                if (vditor.vditor && vditor.vditor.sv && vditor.vditor.sv.element) {
-                    positionData.svScrollTop = vditor.vditor.sv.element.scrollTop;
-                }
-
-                if (vditor.vditor && vditor.vditor.wysiwyg && vditor.vditor.wysiwyg.element) {
-                    positionData.wysiwygScrollTop = vditor.vditor.wysiwyg.element.scrollTop;
-                }
-
-                // 存储到localStorage
-                const key = `file_scroll_position_${filePath}`;
-                localStorage.setItem(key, JSON.stringify(positionData));
-            } catch (e) {
-                console.warn('无法保存滚动位置:', e);
-            }
-        }
-
-        // 从localStorage获取文件滚动位置
-        function getFileScrollPosition(filePath) {
-            if (!filePath) return null;
-
-            try {
-                const key = `file_scroll_position_${filePath}`;
-                const stored = localStorage.getItem(key);
-
-                if (stored) {
-                    return JSON.parse(stored);
-                }
-            } catch (e) {
-                console.warn('无法获取滚动位置:', e);
-            }
-
-            return null;
-        }
-
-        // 初始化Vditor编辑器
-        function initEditor(content, savedPosition = null) {
-            if (vditor) {
-                vditor.destroy();
-                vditor = null;
-            }
-
-            $('#vditor-container').html('<div id="vditor"></div>');
-
-            // 在移动端设置合适的高度
-            const isMobile = window.innerWidth <= 576;
-            const editorHeight = isMobile ?
-                (window.innerHeight - 40) + 'px' : // 减去状态栏高度
-                '100%';
-
-            vditor = new Vditor('vditor', {
-                height: editorHeight,
-                value: content,
-                cache: {
-                    enable: false,
-                },
-                placeholder: '在此编辑文件内容...',
-                toolbar: [
-                    "emoji",
-                    "headings",
-                    "bold",
-                    "italic",
-                    "strike",
-                    "link",
-                    "|",
-                    "list",
-                    "ordered-list",
-                    "check",
-                    "outdent",
-                    "indent",
-                    "|",
-                    "quote",
-                    "line",
-                    "code",
-                    "inline-code",
-                    "insert-before",
-                    "insert-after",
-                    "|",
-                    "upload",
-                    "record",
-                    "table",
-                    "|",
-                    "undo",
-                    "redo",
-                    "|",
-                    "edit-mode",
-                    "content-theme",
-                    "code-theme",
-                    "export",
-                    {
-                        name: "more",
-                        toolbar: [
-                            "fullscreen",
-                            "both",
-                            "preview",
-                            "info",
-                            "help",
-                        ],
-                    }
-                ],
-                toolbarConfig: {
-                    pin: true,
-                },
-                cache: {
-                    enable: false,
-                },
-                theme: {
-                    current: 'classic',
-                    path: 'https://unpkg.com/vditor@3.11.2/dist/css/content-theme',
-                },
-                "outline": {
-                    "enable": true,
-                    "position": "right"
-                },
-                input: function (value) {
-                    if (!isDirty) {
-                        isDirty = true;
-                        $('#status-bar div:last-child').text('已修改 (未保存)');
-                    }
-
-                    // 保存滚动位置
-                    if (currentFile && currentFile.path) {
-                        saveFileScrollPosition(currentFile.path);
-                    }
-                },
-                focus: function (value) {
-                    startAutoSave();
-                },
-                blur: function (value) {
-                    clearSaveInterval();
-
-                    // 保存滚动位置
-                    if (currentFile && currentFile.path) {
-                        saveFileScrollPosition(currentFile.path);
-                    }
-                },
-                after: function () {
-                    startAutoSave();
-
-                    // 如果有保存的位置，恢复滚动位置
-                    if (savedPosition && vditor) {
-                        setTimeout(() => {
-                            try {
-                                // 尝试滚动到保存的位置
-                                const previewElement = vditor.vditor.preview.element;
-                                if (previewElement) {
-                                    previewElement.scrollTop = savedPosition.previewScrollTop || 0;
-                                }
-
-                                // 对于编辑模式，滚动到指定行
-                                const irElement = vditor.vditor.ir.element;
-                                if (irElement && savedPosition.irScrollTop) {
-                                    irElement.scrollTop = savedPosition.irScrollTop;
-                                }
-
-                                const svElement = vditor.vditor.sv.element;
-                                if (svElement && savedPosition.svScrollTop) {
-                                    svElement.scrollTop = savedPosition.svScrollTop;
-                                }
-
-                                const wysiwygElement = vditor.vditor.wysiwyg.element;
-                                if (wysiwygElement && savedPosition.wysiwygScrollTop) {
-                                    wysiwygElement.scrollTop = savedPosition.wysiwygScrollTop;
-                                }
-                            } catch (e) {
-                                console.warn('无法恢复滚动位置:', e);
-                            }
-                        }, 100);
-                    }
-
-                    // 添加滚动监听器
-                    if (window.addScrollListeners) {
-                        window.addScrollListeners();
-                    }
-
-                    // 在移动端调整编辑器高度
-                    if (window.innerWidth <= 576) {
-                        adjustEditorHeight();
-                    }
-                },
-                // 监听滚动事件以保存滚动位置
-                resize: function () {
-                    if (currentFile && currentFile.path) {
-                        saveFileScrollPosition(currentFile.path);
-                    }
-
-                    // 调整编辑器高度以适应新的窗口尺寸
-                    if (window.innerWidth <= 576) {
-                        adjustEditorHeight();
-                    }
-                }
-            });
-
-            isDirty = false;
-        }
-
-        // 调整编辑器高度以适应移动端屏幕
-        function adjustEditorHeight() {
-            if (vditor && window.innerWidth <= 576) {
-                const editorContainer = document.getElementById('vditor-container');
-                if (editorContainer) {
-                    const statusBarHeight = 40; // 状态栏高度
-                    const newHeight = (window.innerHeight - statusBarHeight) + 'px';
-                    editorContainer.style.height = newHeight;
-
-                    // 重新调整Vditor大小
-                    setTimeout(() => {
-                        if (vditor) {
-                            vditor.resize();
-                        }
-                    }, 100);
-                }
-            }
-        }
-
-        // 启动自动保存
-        function startAutoSave() {
-            clearSaveInterval();
-
-            saveInterval = setInterval(function () {
-                if (isDirty && currentFile && vditor) {
-                    saveCurrentFile();
-                }
-            }, 3000);
-        }
-
-        // 清除自动保存定时器
-        function clearSaveInterval() {
-            if (saveInterval) {
-                clearInterval(saveInterval);
-                saveInterval = null;
-            }
-        }
-
-        // 保存当前文件
-        function saveCurrentFile() {
-            return new Promise((resolve, reject) => {
-                if (!currentFile || !vditor) {
-                    reject('没有文件可保存');
-                    return;
-                }
-
-                const content = vditor.getValue();
-                $('#status-bar div:last-child').text('保存中...');
-
-                const url = BASE_URL + `/api/files/${currentFile.path}`;
-
-                authAjax({
-                    url: url,
-                    method: 'POST',
-                    contentType: 'text/plain',
-                    data: content
-                }).then(function () {
-                    isDirty = false;
-                    lastSaveTime = new Date();
-                    $('#status-bar div:last-child').text('已保存 ' + lastSaveTime.toLocaleTimeString());
-                    resolve();
-                }).catch(function (error) {
-                    if (error.status !== 401) { // 401错误已经在authAjax中处理
-                        $('#status-bar div:last-child').text('保存失败: ' + (error.responseText || error.statusText || '未知错误'));
-                    }
-                    reject(error);
-                });
-            });
-        }
-
-        // 初始化拖动调整大小功能
-        function initResizeHandler() {
-            const resizeHandle = document.getElementById('resize-handle');
-            const treeContainer = document.getElementById('tree-container');
-            const mainContainer = document.querySelector('.main-container');
-            let startX, startWidth;
-
-            resizeHandle.addEventListener('mousedown', function (e) {
-                isResizing = true;
-                startX = e.clientX;
-                startWidth = parseInt(document.defaultView.getComputedStyle(treeContainer).width, 10);
-                resizeHandle.classList.add('active');
-
-                document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
-
-                e.preventDefault();
-            });
-
-            function handleMouseMove(e) {
-                if (!isResizing) return;
-
-                const width = startWidth + e.clientX - startX;
-                const maxWidth = mainContainer.offsetWidth * 0.5;
-
-                if (width >= 200 && width <= maxWidth) {
-                    treeContainer.style.width = width + 'px';
-
-                    if (tree) {
-                        tree.jstree('redraw');
-                    }
-                    if (vditor) {
-                        setTimeout(() => {
-                            vditor.resize();
-                        }, 50);
-                    }
-                }
-            }
-
-            function handleMouseUp() {
-                isResizing = false;
-                resizeHandle.classList.remove('active');
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-
-                const width = parseInt(treeContainer.style.width, 10);
-                if (width) {
-                    localStorage.setItem('tree-container-width', width);
-                }
-            }
-
-            const savedWidth = localStorage.getItem('tree-container-width');
-            if (savedWidth) {
-                treeContainer.style.width = savedWidth + 'px';
-            }
-        }
-
-        // 手动保存快捷键
-        $(document).on('keydown', function (e) {
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                if (currentFile && vditor) {
-                    saveCurrentFile();
-                }
-            }
-        });
-
-        // 监听编辑器区域的滚动事件以保存滚动位置
-        function setupScrollListener() {
-            // 使用节流函数减少保存频率
-            let scrollTimeout;
-
-            // 由于Vditor有自己的滚动容器，我们需要在编辑器初始化后添加滚动监听器
-            function addScrollListeners() {
-                if (!vditor) return;
-
-                // 获取Vditor的各种模式的滚动容器
-                const elementsToWatch = [
-                    vditor.vditor?.preview?.element,
-                    vditor.vditor?.ir?.element,
-                    vditor.vditor?.sv?.element,
-                    vditor.vditor?.wysiwyg?.element
-                ];
-
-                elementsToWatch.forEach(element => {
-                    if (element) {
-                        element.addEventListener('scroll', function () {
-                            if (scrollTimeout) {
-                                clearTimeout(scrollTimeout);
-                            }
-
-                            scrollTimeout = setTimeout(() => {
-                                if (currentFile && currentFile.path) {
-                                    saveFileScrollPosition(currentFile.path);
-                                }
-                            }, 500); // 每500毫秒保存一次
-                        }, {passive: true});
-                    }
-                });
-            }
-
-            // 暴露给外部调用
-            window.addScrollListeners = addScrollListeners;
-        }
-
-        // 窗口关闭前保存滚动位置和提示保存
-        window.addEventListener('beforeunload', function (e) {
-            // 保存当前文件的滚动位置
-            if (currentFile && currentFile.path) {
-                saveFileScrollPosition(currentFile.path);
-            }
-
-            if (isDirty) {
-                e.preventDefault();
-                e.returnValue = '您有未保存的更改，确定要离开吗？';
-                return '您有未保存的更改，确定要离开吗？';
-            }
-        });
-
-        // 初始化滚动监听器
-        setupScrollListener();
-
-        // 处理窗口大小变化
-        $(window).on('resize', function () {
-            if (tree) {
-                tree.jstree('redraw');
-            }
-            if (vditor) {
-                setTimeout(() => {
-                    vditor.resize();
-                }, 100);
-            }
-
-            // On mobile devices, ensure proper layout after resize
-            if (window.innerWidth <= 576) {
-                $('.main-container').css('height', '100vh');
-                adjustEditorHeight(); // 调整编辑器高度
-            } else {
-                // 在桌面端恢复原始行为
-                if (vditor) {
-                    vditor.resize();
-                }
-            }
-        });
-
-        // Handle orientation change for mobile devices
-        $(window).on('orientationchange', function () {
-            setTimeout(() => {
-                if (window.innerWidth <= 576) {
-                    // 在移动端调整编辑器高度
-                    adjustEditorHeight();
-                } else {
-                    // 在桌面端正常处理
-                    if (vditor) {
-                        vditor.resize();
-                    }
-                    if (tree) {
-                        tree.jstree('redraw');
-                    }
-                }
-            }, 300); // Delay to allow orientation change to complete
-        });
-
-        // 移动端侧边栏控制
-        function setupMobileSidebar() {
-            const sidebarToggle = document.getElementById('mobile-sidebar-toggle');
-            const treeContainer = document.getElementById('tree-container');
-            const backdrop = document.getElementById('overlay-backdrop');
-
-            if (!sidebarToggle || !treeContainer || !backdrop) {
-                return;
-            }
-
-            // 切换侧边栏显示/隐藏
-            sidebarToggle.addEventListener('click', function (e) {
-                e.stopPropagation();
-                treeContainer.classList.add('sidebar-open');
-                backdrop.classList.add('visible');
-
-                // 确保侧边栏高度为100vh
-                treeContainer.style.height = '100vh';
-
-                // 在移动设备上，确保编辑器失去焦点以防止键盘问题
-                if (vditor) {
-                    vditor.focus();
-                    vditor.blur();
-                }
-            });
-
-            // 点击遮罩层关闭侧边栏
-            backdrop.addEventListener('click', function () {
-                treeContainer.classList.remove('sidebar-open');
-                backdrop.classList.remove('visible');
-
-                // 确保编辑器调整大小
-                setTimeout(() => {
-                    if (vditor) {
-                        vditor.resize();
-                    }
-                }, 350);
-            });
-
-            // 点击文件树内的元素后，如果是文件则关闭侧边栏，如果是文件夹则不关闭（全屏模式下更及时响应）
-            $('#file-tree').on('click', 'a', function (event) {
-                if (window.innerWidth <= 576) {
-                    // 获取被点击的节点
-                    const nodeId = $(this).closest('li').attr('id');
-                    const node = tree.jstree('get_node', nodeId);
-
-                    // 只有在点击文件时才关闭侧边栏
-                    if (node && node.type === 'file') {
-                        // 关闭侧边栏
-                        treeContainer.classList.remove('sidebar-open');
-                        backdrop.classList.remove('visible');
-
-                        // 延迟调整编辑器大小以确保动画完成
-                        setTimeout(() => {
-                            if (vditor) {
-                                vditor.resize();
-                            }
-                        }, 350); // 稍长于过渡动画的时间
-                    }
-                    // 如果是文件夹，则不关闭侧边栏，允许展开操作
-                }
-            });
-
-            // 处理窗口大小变化 - 如果从移动视图切换到桌面视图，确保侧边栏关闭
-            $(window).on('resize', function () {
-                if (window.innerWidth > 576) {
-                    treeContainer.classList.remove('sidebar-open');
-                    backdrop.classList.remove('visible');
-                } else {
-                    // 在移动端，如果侧边栏是打开的，确保它保持正确的全屏状态
-                    if (treeContainer.classList.contains('sidebar-open')) {
-                        treeContainer.style.height = '100vh';
-                    }
-                }
-
-                // 调整编辑器大小
-                setTimeout(() => {
-                    if (vditor) {
-                        vditor.resize();
-                    }
-                }, 100);
-            });
-        }
-
-        // 初始化移动端侧边栏功能
-        setupMobileSidebar();
-
-        // 初始检查认证状态
-        if (!checkAuth()) {
-            handleUnauthorized();
+            'themes': { 'responsive': true, 'dots': false, 'icons': true },
+            'check_callback': true,
+            'force_text': true
+        },
+        'plugins': ['types'],
+        'types': {
+            'default': { 'icon': 'jstree-folder' },
+            'file': { 'icon': 'jstree-file' }
         }
     });
+
+    $('#file-tree').on('ready.jstree after_open.jstree after_close.jstree', function () {
+        setTimeout(() => $('#file-tree a').removeAttr('href'), 50);
+    });
+
+    // ====== 文件选择 ======
+    tree.on('select_node.jstree', function (e, data) {
+        const node = data.node;
+        if (node.type === 'file') {
+            loadFileForEditing(node);
+        } else if (node.path) {
+            loadFileByPath(node.path, node.text);
+        } else {
+            const filePath = buildFilePath(node);
+            updateBreadcrumb(filePath, true);
+            $('#vditor-container').html('<div class="empty-state"><div class="empty-state-icon">📁</div><h3>' + node.text + '</h3><p>选择文件夹内的文件进行编辑</p></div>');
+            if (vditor) { vditor.destroy(); vditor = null; }
+            clearSaveInterval(); currentFile = null; isDirty = false;
+        }
+    });
+
+    // ====== 文件操作 ======
+    function loadFileForEditing(node) {
+        if (!checkAuth()) return;
+        if (isDirty && currentFile && vditor) {
+            if (confirm('当前文件有未保存的更改，是否先保存？')) {
+                saveCurrentFile().then(() => loadNewFile(node)).catch(() => loadNewFile(node));
+            } else { loadNewFile(node); }
+        } else { loadNewFile(node); }
+    }
+
+    function loadFileByPath(filePath, fileName) {
+        if (!checkAuth()) return;
+        if (isDirty && currentFile && vditor) {
+            if (confirm('当前文件有未保存的更改，是否先保存？')) {
+                saveCurrentFile().then(() => loadNewFileByPath(filePath, fileName)).catch(() => loadNewFileByPath(filePath, fileName));
+            } else { loadNewFileByPath(filePath, fileName); }
+        } else { loadNewFileByPath(filePath, fileName); }
+    }
+
+    function loadNewFile(node) {
+        const filePath = buildFilePath(node);
+        if (!filePath) { $('#vditor-container').html('<div class="error-box">无法构建文件路径</div>'); return; }
+        updateBreadcrumb(filePath, false);
+        $('#vditor-container').html('<div class="loading">加载中...</div>');
+        $('#status-left').text('加载中...');
+        authAjax({ url: BASE_URL + `/api/files/${filePath}`, method: 'GET', dataType: 'text' })
+            .then(function (content) {
+                currentFile = { id: node.id, name: node.text, path: filePath };
+                const savedPosition = getFileScrollPosition(filePath);
+                initEditor(content, savedPosition);
+                $('#status-left').text('就绪');
+                isDirty = false;
+            })
+            .catch(function (e) {
+                if (e.status !== 401) {
+                    $('#vditor-container').html('<div class="error-box">加载失败: ' + (e.responseText || '未知错误') + '</div>');
+                    $('#status-left').text('加载失败');
+                }
+            });
+    }
+
+    function loadNewFileByPath(filePath, fileName) {
+        updateBreadcrumb(filePath, false);
+        $('#vditor-container').html('<div class="loading">加载中...</div>');
+        $('#status-left').text('加载中...');
+        authAjax({ url: BASE_URL + `/api/files/${filePath}`, method: 'GET', dataType: 'text' })
+            .then(function (content) {
+                currentFile = { id: 'search-' + filePath, name: fileName, path: filePath };
+                const savedPosition = getFileScrollPosition(filePath);
+                initEditor(content, savedPosition);
+                $('#status-left').text('就绪');
+                isDirty = false;
+            })
+            .catch(function (e) {
+                if (e.status !== 401) {
+                    $('#vditor-container').html('<div class="error-box">加载失败: ' + (e.responseText || '未知错误') + '</div>');
+                    $('#status-left').text('加载失败');
+                }
+            });
+    }
+
+    function updateBreadcrumb(filePath, isDir) {
+        const parts = filePath.split('/');
+        let html = '';
+        parts.forEach((p, i) => {
+            if (i > 0) html += '<span class="sep">/</span>';
+            html += `<span${i === parts.length - 1 ? ' class="current"' : ''}>${p}</span>`;
+        });
+        $('#breadcrumb').html(html);
+    }
+
+    function buildFilePath(node) {
+        if (node.id === 'root') return '';
+        let parts = [];
+        let cur = node;
+        while (cur && cur.id !== '#' && cur.id !== 'root') {
+            if (cur.text && cur.text !== 'root') parts.unshift(cur.text);
+            if (cur.parent && cur.parent !== '#') cur = tree.jstree('get_node', cur.parent);
+            else break;
+        }
+        return parts.length > 0 ? parts.join('/') : node.text;
+    }
+
+    // ====== 滚动位置持久化 ======
+    function saveFileScrollPosition(filePath) {
+        if (!vditor || !filePath) return;
+        try {
+            const d = { previewScrollTop: 0, irScrollTop: 0, svScrollTop: 0, wysiwygScrollTop: 0, timestamp: Date.now() };
+            if (vditor.vditor?.preview?.element) d.previewScrollTop = vditor.vditor.preview.element.scrollTop;
+            if (vditor.vditor?.ir?.element) d.irScrollTop = vditor.vditor.ir.element.scrollTop;
+            if (vditor.vditor?.sv?.element) d.svScrollTop = vditor.vditor.sv.element.scrollTop;
+            if (vditor.vditor?.wysiwyg?.element) d.wysiwygScrollTop = vditor.vditor.wysiwyg.element.scrollTop;
+            localStorage.setItem(`file_scroll_position_${filePath}`, JSON.stringify(d));
+        } catch (e) { /* ignore */ }
+    }
+
+    function getFileScrollPosition(filePath) {
+        if (!filePath) return null;
+        try { const s = localStorage.getItem(`file_scroll_position_${filePath}`); return s ? JSON.parse(s) : null; }
+        catch (e) { return null; }
+    }
+
+    // ====== Vditor 编辑器 ======
+    function initEditor(content, savedPosition = null) {
+        if (vditor) { vditor.destroy(); vditor = null; }
+        $('#vditor-container').html('<div id="vditor"></div>');
+
+        const isMobile = window.innerWidth <= 576;
+        // 获取当前主题对应的 Vditor 主题名
+        const resolvedTheme = resolveTheme(getStoredTheme());
+
+        vditor = new Vditor('vditor', {
+            height: isMobile ? (window.innerHeight - 40) + 'px' : '100%',
+            value: content,
+            cache: { enable: false },
+            placeholder: '在此编辑文件内容...',
+            toolbar: [
+                "emoji", "headings", "bold", "italic", "strike", "link", "|",
+                "list", "ordered-list", "check", "outdent", "indent", "|",
+                "quote", "line", "code", "inline-code", "insert-before", "insert-after", "|",
+                "upload", "record", "table", "|",
+                "undo", "redo", "|",
+                "edit-mode", "content-theme", "code-theme", "export",
+                { name: "more", toolbar: ["fullscreen", "both", "preview", "info", "help"] }
+            ],
+            toolbarConfig: { pin: true },
+            theme: {
+                current: getVditorThemeName(resolvedTheme),
+                path: 'https://unpkg.com/vditor@3.11.2/dist/css/content-theme',
+            },
+            outline: { enable: true, position: 'right' },
+            input: function () {
+                if (!isDirty) {
+                    isDirty = true;
+                    $('#save-indicator').addClass('dirty').removeClass('saved').text('● 未保存');
+                }
+                if (currentFile?.path) saveFileScrollPosition(currentFile.path);
+            },
+            focus: function () { startAutoSave(); },
+            blur: function () {
+                clearSaveInterval();
+                if (currentFile?.path) saveFileScrollPosition(currentFile.path);
+            },
+            after: function () {
+                startAutoSave();
+                window.vditorInstance = vditor;
+                // 确保 Vditor 主题与当前主题一致
+                if (savedPosition && vditor) {
+                    setTimeout(() => {
+                        try {
+                            if (vditor.vditor?.preview?.element) vditor.vditor.preview.element.scrollTop = savedPosition.previewScrollTop || 0;
+                            if (vditor.vditor?.ir?.element) vditor.vditor.ir.element.scrollTop = savedPosition.irScrollTop || 0;
+                            if (vditor.vditor?.sv?.element) vditor.vditor.sv.element.scrollTop = savedPosition.svScrollTop || 0;
+                            if (vditor.vditor?.wysiwyg?.element) vditor.vditor.wysiwyg.element.scrollTop = savedPosition.wysiwygScrollTop || 0;
+                        } catch (e) { /* ignore */ }
+                    }, 100);
+                }
+                if (window.innerWidth <= 576) adjustEditorHeight();
+            },
+            resize: function () {
+                if (currentFile?.path) saveFileScrollPosition(currentFile.path);
+                if (window.innerWidth <= 576) adjustEditorHeight();
+            }
+        });
+        isDirty = false;
+    }
+
+    function adjustEditorHeight() {
+        if (vditor && window.innerWidth <= 576) {
+            const c = document.getElementById('vditor-container');
+            if (c) { c.style.height = (window.innerHeight - 40) + 'px'; setTimeout(() => vditor.resize(), 100); }
+        }
+    }
+
+    // ====== 保存 ======
+    function startAutoSave() {
+        clearSaveInterval();
+        saveInterval = setInterval(() => { if (isDirty && currentFile && vditor) saveCurrentFile(); }, 3000);
+    }
+
+    function clearSaveInterval() { if (saveInterval) { clearInterval(saveInterval); saveInterval = null; } }
+
+    function saveCurrentFile() {
+        return new Promise((resolve, reject) => {
+            if (!currentFile || !vditor) { reject('没有文件可保存'); return; }
+            const content = vditor.getValue();
+            $('#save-indicator').text('保存中...').removeClass('dirty saved');
+            authAjax({ url: BASE_URL + `/api/files/${currentFile.path}`, method: 'POST', contentType: 'text/plain', data: content })
+                .then(function () {
+                    isDirty = false;
+                    lastSaveTime = new Date();
+                    $('#save-indicator').addClass('saved').removeClass('dirty').text('✓ 已保存 ' + lastSaveTime.toLocaleTimeString());
+                    resolve();
+                })
+                .catch(function (e) {
+                    if (e.status !== 401) $('#save-indicator').text('保存失败').addClass('dirty');
+                    reject(e);
+                });
+        });
+    }
+
+    // Ctrl+S
+    $(document).on('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (currentFile && vditor) saveCurrentFile(); }
+    });
+
+    // ====== 拖拽调整 ======
+    function initResizeHandler() {
+        const handle = document.getElementById('resize-handle');
+        const sidebar = document.getElementById('sidebar');
+        let startX, startWidth;
+
+        handle.addEventListener('mousedown', function (e) {
+            isResizing = true; startX = e.clientX;
+            startWidth = parseInt(getComputedStyle(sidebar).width, 10);
+            handle.classList.add('active');
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+            e.preventDefault();
+        });
+
+        function onMove(e) {
+            if (!isResizing) return;
+            const w = startWidth + e.clientX - startX;
+            if (w >= 200 && w <= 500) {
+                sidebar.style.width = w + 'px';
+                if (vditor) setTimeout(() => vditor.resize(), 50);
+            }
+        }
+
+        function onUp() {
+            isResizing = false; handle.classList.remove('active');
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            const w = parseInt(sidebar.style.width, 10);
+            if (w) localStorage.setItem('sidebar-width', w);
+        }
+
+        const savedW = localStorage.getItem('sidebar-width');
+        if (savedW) sidebar.style.width = savedW + 'px';
+    }
+
+    // ====== 窗口事件 ======
+    window.addEventListener('beforeunload', function (e) {
+        if (currentFile?.path) saveFileScrollPosition(currentFile.path);
+        if (isDirty) { e.preventDefault(); e.returnValue = '有未保存的更改'; return e.returnValue; }
+    });
+
+    $(window).on('resize', function () {
+        if (vditor) setTimeout(() => vditor.resize(), 100);
+        if (window.innerWidth <= 576) adjustEditorHeight();
+    });
+
+    // ====== 移动端侧边栏 ======
+    (function () {
+        const toggle = document.getElementById('mobile-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('overlay-backdrop');
+        if (!toggle) return;
+
+        toggle.addEventListener('click', () => { sidebar.classList.add('sidebar-open'); backdrop.classList.add('visible'); });
+        backdrop.addEventListener('click', () => { sidebar.classList.remove('sidebar-open'); backdrop.classList.remove('visible'); });
+
+        $('#file-tree').on('click', 'a', function () {
+            if (window.innerWidth <= 576) {
+                const nodeId = $(this).closest('li').attr('id');
+                const node = tree.jstree('get_node', nodeId);
+                if (node?.type === 'file') {
+                    sidebar.classList.remove('sidebar-open');
+                    backdrop.classList.remove('visible');
+                    setTimeout(() => { if (vditor) vditor.resize(); }, 300);
+                }
+            }
+        });
+    })();
+
+    // ====== 新建 / 删除功能 ======
+    let contextNode = null;
+
+    window.closeModal = function (id) { document.getElementById(id).classList.remove('active'); };
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+
+    function getSelectedDirPath() {
+        const sel = tree.jstree('get_selected', true);
+        if (!sel.length) return '';
+        const node = sel[0];
+        if (node.type === 'file') {
+            const parent = tree.jstree('get_node', node.parent);
+            return (parent && parent.id !== '#' && parent.id !== 'root') ? buildFilePath(parent) : '';
+        }
+        return buildFilePath(node);
+    }
+
+    $('#btn-new-file').on('click', function () {
+        const dir = getSelectedDirPath();
+        const input = document.getElementById('input-new-file');
+        input.value = ''; input.dataset.dir = dir;
+        openModal('modal-new-file');
+        setTimeout(() => input.focus(), 100);
+    });
+
+    $('#btn-new-folder').on('click', function () {
+        const dir = getSelectedDirPath();
+        const input = document.getElementById('input-new-folder');
+        input.value = ''; input.dataset.dir = dir;
+        openModal('modal-new-folder');
+        setTimeout(() => input.focus(), 100);
+    });
+
+    $('#btn-delete').on('click', function () {
+        const sel = tree.jstree('get_selected', true);
+        if (!sel.length) { alert('请先选择要删除的文件或文件夹'); return; }
+        confirmAndDelete(sel[0]);
+    });
+
+    $('#btn-confirm-new-file').on('click', function () {
+        const input = document.getElementById('input-new-file');
+        const name = input.value.trim();
+        if (!name) { input.style.borderColor = 'var(--semantic-error)'; return; }
+        input.style.borderColor = '';
+        const dir = input.dataset.dir || '';
+        const fullPath = dir ? dir + '/' + name : name;
+        authAjax({ url: BASE_URL + '/api/create-file', method: 'POST', contentType: 'application/json', data: JSON.stringify({ path: fullPath, content: '' }) })
+            .then(() => { closeModal('modal-new-file'); tree.jstree(true).refresh(); $('#status-left').text('文件创建成功'); })
+            .catch((e) => { if (e.status !== 401) { const m = e.responseJSON?.message || '创建失败'; alert(m); } });
+    });
+
+    $('#btn-confirm-new-folder').on('click', function () {
+        const input = document.getElementById('input-new-folder');
+        const name = input.value.trim();
+        if (!name) { input.style.borderColor = 'var(--semantic-error)'; return; }
+        input.style.borderColor = '';
+        const dir = input.dataset.dir || '';
+        const fullPath = dir ? dir + '/' + name : name;
+        authAjax({ url: BASE_URL + '/api/mkdir', method: 'POST', contentType: 'application/json', data: JSON.stringify({ path: fullPath }) })
+            .then(() => { closeModal('modal-new-folder'); tree.jstree(true).refresh(); $('#status-left').text('文件夹创建成功'); })
+            .catch((e) => { if (e.status !== 401) { const m = e.responseJSON?.message || '创建失败'; alert(m); } });
+    });
+
+    function confirmAndDelete(node) {
+        const filePath = buildFilePath(node);
+        if (!filePath) { alert('无法删除根目录'); return; }
+        const type = node.type === 'file' ? '文件' : '文件夹';
+        const suffix = node.type !== 'file' ? ' 文件夹内所有内容将被删除。' : '';
+        document.getElementById('delete-message').textContent = `确定要删除${type} "${node.text}" 吗？${suffix}`;
+        document.getElementById('btn-confirm-delete').dataset.path = filePath;
+        openModal('modal-delete');
+    }
+
+    $('#btn-confirm-delete').on('click', function () {
+        const filePath = this.dataset.path;
+        if (!filePath) return;
+        authAjax({ url: BASE_URL + '/api/files/' + filePath, method: 'DELETE' })
+            .then(() => {
+                closeModal('modal-delete');
+                if (currentFile && (currentFile.path === filePath || filePath.startsWith(currentFile.path + '/'))) {
+                    if (vditor) { vditor.destroy(); vditor = null; }
+                    currentFile = null; isDirty = false;
+                    $('#vditor-container').html('<div class="empty-state"><div class="empty-state-icon">📝</div><h3>选择文件开始编辑</h3><p>从左侧选择一个文件，或创建新文件</p></div>');
+                    $('#breadcrumb').html('<span class="current">EasyNotes</span>');
+                    $('#save-indicator').text('');
+                }
+                tree.jstree(true).refresh();
+                $('#status-left').text('删除成功');
+            })
+            .catch((e) => { if (e.status !== 401) { const m = e.responseJSON?.message || '删除失败'; alert(m); } });
+    });
+
+    // 回车确认
+    $('#input-new-file').on('keydown', (e) => { if (e.key === 'Enter') $('#btn-confirm-new-file').click(); });
+    $('#input-new-folder').on('keydown', (e) => { if (e.key === 'Enter') $('#btn-confirm-new-folder').click(); });
+
+    // 弹窗外部关闭
+    $('.modal-overlay').on('click', function (e) { if (e.target === this) closeModal(this.id); });
+
+    // ESC
+    $(document).on('keydown', function (e) {
+        if (e.key === 'Escape') { $('.modal-overlay.active').each(function () { closeModal(this.id); }); $('#context-menu').hide(); }
+    });
+
+    // ====== 右键菜单 ======
+    $('#file-tree').on('contextmenu', '.jstree-anchor', function (e) {
+        e.preventDefault(); e.stopPropagation();
+        const nodeId = $(this).closest('li').attr('id');
+        const node = tree.jstree('get_node', nodeId);
+        if (!node) return;
+        tree.jstree('select_node', nodeId);
+        contextNode = node;
+
+        // 根据节点类型显隐菜单项
+        const isFolder = node.type !== 'file';
+        document.getElementById('ctx-folder-items').style.display = isFolder ? 'block' : 'none';
+
+        const menu = document.getElementById('context-menu');
+        menu.style.display = 'block';
+        let x = e.clientX, y = e.clientY;
+        if (x + 180 > window.innerWidth) x = window.innerWidth - 190;
+        if (y + 120 > window.innerHeight) y = window.innerHeight - 130;
+        menu.style.left = x + 'px'; menu.style.top = y + 'px';
+    });
+
+    $('#context-menu').on('click', '.ctx-item', function () {
+        const action = $(this).data('action');
+        $('#context-menu').hide();
+        if (!contextNode) return;
+        if (action === 'new-file') {
+            // 在右键文件夹的子层创建
+            const dir = contextNode.type !== 'file' ? buildFilePath(contextNode) : '';
+            const input = document.getElementById('input-new-file');
+            input.value = ''; input.dataset.dir = dir;
+            openModal('modal-new-file'); setTimeout(() => input.focus(), 100);
+        } else if (action === 'new-folder') {
+            // 在右键文件夹的子层创建
+            const dir = contextNode.type !== 'file' ? buildFilePath(contextNode) : '';
+            const input = document.getElementById('input-new-folder');
+            input.value = ''; input.dataset.dir = dir;
+            openModal('modal-new-folder'); setTimeout(() => input.focus(), 100);
+        } else if (action === 'delete') {
+            confirmAndDelete(contextNode);
+        }
+    });
+
+    $(document).on('click', () => $('#context-menu').hide());
+
+    // 初始检查
+    if (!checkAuth()) handleUnauthorized();
+});
 </script>
 </body>
 </html>

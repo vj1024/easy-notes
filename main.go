@@ -30,6 +30,30 @@ var (
 	adminPassword string
 )
 
+// safePath 验证请求路径是否在 baseDir 内，防止路径遍历攻击
+func safePath(requestPath string) (string, error) {
+	requestPath = strings.TrimPrefix(requestPath, "/")
+	requestPath = filepath.Clean(requestPath)
+	fullPath := filepath.Join(baseDir, requestPath)
+
+	// 解析绝对路径进行校验
+	absBase, err := filepath.Abs(baseDir)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve base directory: %v", err)
+	}
+	absFull, err := filepath.Abs(fullPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve full path: %v", err)
+	}
+
+	// 确保目标路径在 baseDir 内
+	if !strings.HasPrefix(absFull+string(os.PathSeparator), absBase+string(os.PathSeparator)) && absFull != absBase {
+		return "", fmt.Errorf("path traversal detected")
+	}
+
+	return fullPath, nil
+}
+
 type FileInfo struct {
 	Name      string    `json:"name"`
 	Path      string    `json:"path"`
@@ -129,6 +153,9 @@ func main() {
 		authGroup.GET("/api/files/*path", handleFileGet)
 		authGroup.PUT("/api/files/*path", handleFilePut)
 		authGroup.POST("/api/files/*path", handleFileUpload)
+		authGroup.DELETE("/api/files/*path", handleFileDelete)
+		authGroup.POST("/api/mkdir", handleMkdir)
+		authGroup.POST("/api/create-file", handleCreateFile)
 		authGroup.POST("/api/logout", logoutHandler)
 	}
 
@@ -394,10 +421,16 @@ func handleFileGet(c *gin.Context) {
 		return
 	}
 
-	requestPath = strings.TrimPrefix(requestPath, "/")
-	requestPath = filepath.Clean(requestPath)
-	fullPath := filepath.Join(baseDir, requestPath)
+	fullPath, err := safePath(requestPath)
+	if err != nil {
+		c.JSON(http.StatusForbidden, DirectoryResponse{
+			Success: false,
+			Message: "非法路径: " + err.Error(),
+		})
+		return
+	}
 
+	requestPath = strings.TrimPrefix(requestPath, "/")
 	serveFile(c, fullPath, requestPath)
 }
 
@@ -411,17 +444,32 @@ func handleFilePut(c *gin.Context) {
 		return
 	}
 
-	requestPath = strings.TrimPrefix(requestPath, "/")
-	requestPath = filepath.Clean(requestPath)
-	fullPath := filepath.Join(baseDir, requestPath)
+	fullPath, err := safePath(requestPath)
+	if err != nil {
+		c.JSON(http.StatusForbidden, DirectoryResponse{
+			Success: false,
+			Message: "非法路径: " + err.Error(),
+		})
+		return
+	}
 
+	requestPath = strings.TrimPrefix(requestPath, "/")
 	uploadFile(c, fullPath, requestPath)
 }
 
 func handleFileUpload(c *gin.Context) {
 	requestPath := c.Param("path")
+
+	fullPath, err := safePath(requestPath)
+	if err != nil {
+		c.JSON(http.StatusForbidden, DirectoryResponse{
+			Success: false,
+			Message: "非法路径: " + err.Error(),
+		})
+		return
+	}
+
 	requestPath = strings.TrimPrefix(requestPath, "/")
-	fullPath := filepath.Join(baseDir, requestPath)
 	dir := filepath.Dir(fullPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		c.JSON(http.StatusInternalServerError, DirectoryResponse{
@@ -701,12 +749,183 @@ func countSearchResults(results []*SearchResult) int {
 	return count
 }
 
+// handleFileDelete 删除文件或文件夹
+func handleFileDelete(c *gin.Context) {
+	requestPath := c.Param("path")
+	if requestPath == "" || requestPath == "/" {
+		c.JSON(http.StatusBadRequest, DirectoryResponse{
+			Success: false,
+			Message: "路径不能为空",
+		})
+		return
+	}
+
+	fullPath, err := safePath(requestPath)
+	if err != nil {
+		c.JSON(http.StatusForbidden, DirectoryResponse{
+			Success: false,
+			Message: "非法路径: " + err.Error(),
+		})
+		return
+	}
+
+	fileInfo, err := os.Stat(fullPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			c.JSON(http.StatusNotFound, DirectoryResponse{
+				Success: false,
+				Message: "文件或目录不存在",
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, DirectoryResponse{
+			Success: false,
+			Message: "访问失败: " + err.Error(),
+		})
+		return
+	}
+
+	if fileInfo.IsDir() {
+		if err := os.RemoveAll(fullPath); err != nil {
+			c.JSON(http.StatusInternalServerError, DirectoryResponse{
+				Success: false,
+				Message: "删除目录失败: " + err.Error(),
+			})
+			return
+		}
+	} else {
+		if err := os.Remove(fullPath); err != nil {
+			c.JSON(http.StatusInternalServerError, DirectoryResponse{
+				Success: false,
+				Message: "删除文件失败: " + err.Error(),
+			})
+			return
+		}
+	}
+
+	requestPath = strings.TrimPrefix(requestPath, "/")
+	c.JSON(http.StatusOK, DirectoryResponse{
+		Path:    filepath.ToSlash(requestPath),
+		Success: true,
+		Message: "删除成功",
+	})
+}
+
+// MkdirRequest 创建目录请求
+type MkdirRequest struct {
+	Path string `json:"path" binding:"required"` // 相对于 data 的路径
+}
+
+// CreateFileRequest 创建文件请求
+type CreateFileRequest struct {
+	Path    string `json:"path" binding:"required"` // 相对于 data 的路径，含文件名
+	Content string `json:"content"`                // 初始内容
+}
+
+// handleMkdir 创建目录
+func handleMkdir(c *gin.Context) {
+	var req MkdirRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, DirectoryResponse{
+			Success: false,
+			Message: "请求参数错误",
+		})
+		return
+	}
+
+	fullPath, err := safePath(req.Path)
+	if err != nil {
+		c.JSON(http.StatusForbidden, DirectoryResponse{
+			Success: false,
+			Message: "非法路径: " + err.Error(),
+		})
+		return
+	}
+
+	if _, err := os.Stat(fullPath); err == nil {
+		c.JSON(http.StatusConflict, DirectoryResponse{
+			Success: false,
+			Message: "目录已存在",
+		})
+		return
+	}
+
+	if err := os.MkdirAll(fullPath, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, DirectoryResponse{
+			Success: false,
+			Message: "创建目录失败: " + err.Error(),
+		})
+		return
+	}
+
+	req.Path = strings.TrimPrefix(req.Path, "/")
+	c.JSON(http.StatusOK, DirectoryResponse{
+		Path:    filepath.ToSlash(req.Path),
+		Success: true,
+		Message: "目录创建成功",
+	})
+}
+
+// handleCreateFile 创建新文件
+func handleCreateFile(c *gin.Context) {
+	var req CreateFileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, DirectoryResponse{
+			Success: false,
+			Message: "请求参数错误",
+		})
+		return
+	}
+
+	fullPath, err := safePath(req.Path)
+	if err != nil {
+		c.JSON(http.StatusForbidden, DirectoryResponse{
+			Success: false,
+			Message: "非法路径: " + err.Error(),
+		})
+		return
+	}
+
+	if _, err := os.Stat(fullPath); err == nil {
+		c.JSON(http.StatusConflict, DirectoryResponse{
+			Success: false,
+			Message: "文件已存在",
+		})
+		return
+	}
+
+	// 确保父目录存在
+	parentDir := filepath.Dir(fullPath)
+	if err := os.MkdirAll(parentDir, 0755); err != nil {
+		c.JSON(http.StatusInternalServerError, DirectoryResponse{
+			Success: false,
+			Message: "创建父目录失败: " + err.Error(),
+		})
+		return
+	}
+
+	if err := os.WriteFile(fullPath, []byte(req.Content), 0644); err != nil {
+		c.JSON(http.StatusInternalServerError, DirectoryResponse{
+			Success: false,
+			Message: "创建文件失败: " + err.Error(),
+		})
+		return
+	}
+
+	req.Path = strings.TrimPrefix(req.Path, "/")
+	c.JSON(http.StatusOK, DirectoryResponse{
+		Path:    filepath.ToSlash(req.Path),
+		Success: true,
+		Message: "文件创建成功",
+	})
+}
+
 func uploadFile(c *gin.Context, fullPath, requestPath string) {
 	dir := filepath.Dir(fullPath)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		c.JSON(http.StatusBadRequest, DirectoryResponse{
 			Success: false,
-			Message: "Parent directory does not exist",
+			Message: "父目录不存在",
 		})
 		return
 	}

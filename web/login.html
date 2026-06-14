@@ -3,178 +3,353 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>EasyNotes - 登录</title>
     <link rel="icon" href="/favicon.ico">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+        :root {
+            --primary: #5645d4;
+            --primary-pressed: #4534b3;
+            --primary-deep: #3a2a99;
+            --on-primary: #ffffff;
+            --brand-navy: #0a1530;
+            --brand-navy-mid: #1a2a52;
+            --link-blue: #0075de;
+            --canvas: #ffffff;
+            --surface: #f6f5f4;
+            --surface-soft: #fafaf9;
+            --hairline: #e5e3df;
+            --hairline-soft: #ede9e4;
+            --hairline-strong: #c8c4be;
+            --ink: #1a1a1a;
+            --charcoal: #37352f;
+            --slate: #5d5b54;
+            --steel: #787671;
+            --stone: #a4a097;
+            --muted: #bbb8b1;
+            --semantic-error: #e03131;
+        }
+
+        :root[data-theme="dark"] {
+            --primary: #7c6ef0;
+            --primary-pressed: #6b5dd6;
+            --primary-deep: #5645d4;
+            --brand-navy: #0a0a0a;
+            --canvas: #1a1a19;
+            --surface: #0f0f0e;
+            --surface-soft: #161615;
+            --hairline: #2a2928;
+            --hairline-soft: #232221;
+            --hairline-strong: #3a3938;
+            --ink: #e8e6e3;
+            --charcoal: #d4d2cc;
+            --slate: #a8a59f;
+            --steel: #8b8985;
+            --stone: #6b6964;
+            --muted: #4a4845;
+            --semantic-error: #ff6b6b;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6);
+            font-size: 16px;
+            cursor: pointer;
             display: flex;
-            justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            padding: 10px;
-            box-sizing: border-box;
+            justify-content: center;
+            transition: background 0.15s, color 0.15s;
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--brand-navy);
+            background-image:
+                radial-gradient(ellipse at 20% 50%, rgba(86, 69, 212, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 50%, rgba(123, 63, 242, 0.1) 0%, transparent 50%);
+            padding: 24px;
+            transition: background-color 0.3s ease;
         }
 
         .login-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 350px;
-            box-sizing: border-box;
+            max-width: 400px;
+        }
+
+        .brand-area {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .brand-logo {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--on-primary);
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(86, 69, 212, 0.3);
+        }
+
+        .brand-name {
+            font-size: 22px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        .brand-tagline {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.5;
+        }
+
+        .login-card {
+            background: var(--canvas);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: rgba(15, 15, 15, 0.2) 0px 24px 48px -8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-card h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 24px;
+            letter-spacing: -0.3px;
         }
 
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 16px;
         }
 
-        label {
+        .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-
-        input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 16px; /* Better for mobile touch targets */
-        }
-
-        button {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
+            font-size: 13px;
             font-weight: 500;
+            color: var(--charcoal);
+            margin-bottom: 6px;
         }
 
-        button:hover {
-            background-color: #0056b3;
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--hairline-strong);
+            border-radius: 8px;
+            font-size: 15px;
+            color: var(--ink);
+            background: var(--canvas);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            font-family: inherit;
+            height: 44px;
         }
 
-        .error {
-            color: red;
-            margin-top: 1rem;
+        .form-group input::placeholder {
+            color: var(--stone);
         }
 
-        h2 {
-            margin-top: 0;
-            margin-bottom: 1.5rem;
+        .form-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(86, 69, 212, 0.15);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 11px 18px;
+            background: var(--primary);
+            color: var(--on-primary);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            font-family: inherit;
+            margin-top: 8px;
+            height: 44px;
+        }
+
+        .login-button:hover {
+            background: var(--primary-deep);
+        }
+
+        .login-button:active {
+            background: var(--primary-pressed);
+            transform: scale(0.98);
+        }
+
+        .login-button:disabled {
+            background: var(--hairline);
+            color: var(--muted);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: var(--semantic-error);
+            font-size: 13px;
+            margin-top: 12px;
+            display: none;
+            padding: 10px 14px;
+            background: #fdecea;
+            border-radius: 8px;
+            line-height: 1.5;
+        }
+
+        .error-message.visible {
+            display: block;
+        }
+
+        .footer-text {
             text-align: center;
-            color: #333;
+            margin-top: 24px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
         }
 
-        /* Mobile-specific styles */
         @media (max-width: 480px) {
-            body {
-                padding: 5px;
-            }
-
-            .login-container {
-                padding: 1.5rem;
-                margin: 0;
-            }
-
-            h2 {
-                font-size: 1.5rem;
-            }
-
-            input, button {
-                padding: 0.8rem;
-                font-size: 16px; /* Ensure good touch target size */
+            .login-card {
+                padding: 24px;
+                border-radius: 12px;
             }
         }
     </style>
+    <script>
+        // 主题初始化 (提前执行避免闪烁)
+        (function() {
+            const stored = localStorage.getItem('easynotes-theme') || 'auto';
+            const resolved = stored === 'auto'
+                ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+                : stored;
+            document.documentElement.setAttribute('data-theme', resolved);
+        })();
+    </script>
 </head>
 <body>
-<div class="login-container">
-    <h2>文件服务登录</h2>
-    <form id="loginForm">
-        <div class="form-group">
-            <label for="username">用户名:</label>
-            <input type="text" id="username" name="username" required>
+    <button class="theme-toggle" id="theme-toggle" title="切换主题">☀</button>
+    <div class="login-container">
+        <div class="brand-area">
+            <div class="brand-logo">📝</div>
+            <div class="brand-name">EasyNotes</div>
+            <div class="brand-tagline">简洁安全的笔记编辑器</div>
         </div>
-        <div class="form-group">
-            <label for="password">密码:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-        <button type="submit">登录</button>
-    </form>
-    <div id="errorMessage" class="error"></div>
-</div>
 
-<script>
-    // 检查是否已登录
-    async function checkAuth() {
-        const token = localStorage.getItem('token');
-        if (token) {
+        <div class="login-card">
+            <h2>登录到 EasyNotes</h2>
+            <form id="login-form" autocomplete="on">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" placeholder="请输入用户名" autocomplete="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" placeholder="请输入密码" autocomplete="current-password" required>
+                </div>
+                <button type="submit" class="login-button" id="login-btn">登录</button>
+                <div class="error-message" id="error-msg"></div>
+            </form>
+        </div>
+
+        <div class="footer-text">EasyNotes · 安全可靠的笔记管理</div>
+    </div>
+
+    <script>
+        // 主题切换
+        const THEME_KEY = 'easynotes-theme';
+        function getStoredTheme() { return localStorage.getItem(THEME_KEY) || 'auto'; }
+        function resolveTheme(t) {
+            if (t === 'auto') return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            return t;
+        }
+        function updateThemeIcon() {
+            const btn = document.getElementById('theme-toggle');
+            const stored = getStoredTheme();
+            if (stored === 'auto') btn.textContent = '🖥';
+            else if (resolveTheme(stored) === 'dark') btn.textContent = '🌙';
+            else btn.textContent = '☀';
+        }
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            const current = getStoredTheme();
+            const next = current === 'light' ? 'dark' : current === 'dark' ? 'auto' : 'light';
+            localStorage.setItem(THEME_KEY, next);
+            document.documentElement.setAttribute('data-theme', resolveTheme(next));
+            updateThemeIcon();
+        });
+        updateThemeIcon();
+
+        const form = document.getElementById('login-form');
+        const btn = document.getElementById('login-btn');
+        const errMsg = document.getElementById('error-msg');
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            errMsg.classList.remove('visible');
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showError('请输入用户名和密码');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '登录中...';
+
             try {
-                const response = await fetch('/api/check-auth', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
+                const resp = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.authenticated) {
-                        const urlParams = new URLSearchParams(window.location.search);
-                        const redirect = urlParams.get('redirect') || '/editor';
-                        window.location.href = redirect;
-                    }
+                const data = await resp.json();
+
+                if (data.success) {
+                    localStorage.setItem('token', data.token);
+                    const redirect = new URLSearchParams(window.location.search).get('redirect') || '/editor';
+                    window.location.href = redirect;
+                } else {
+                    showError(data.message || '登录失败');
                 }
-            } catch (error) {
-                console.log('Token验证失败');
+            } catch (err) {
+                showError('网络错误，请重试');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '登录';
             }
+        });
+
+        function showError(msg) {
+            errMsg.textContent = msg;
+            errMsg.classList.add('visible');
         }
-    }
-
-    checkAuth();
-
-    document.getElementById('loginForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const errorMessage = document.getElementById('errorMessage');
-
-        try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({username, password})
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                // 保存 token 到 localStorage
-                localStorage.setItem('token', data.token);
-                // 跳转到文件列表页面
-                const urlParams = new URLSearchParams(window.location.search);
-                const redirect = urlParams.get('redirect') || '/editor';
-                window.location.href = redirect;
-            } else {
-                errorMessage.textContent = data.message;
-            }
-        } catch (error) {
-            errorMessage.textContent = '登录失败，请重试';
-        }
-    });
-
-</script>
+    </script>
 </body>
 </html>
