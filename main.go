@@ -20,7 +20,7 @@ import (
 
 const (
 	maxUploadSize = 50 << 20
-	tokenExpire   = 7 * 24 * time.Hour // token 有效期 7 天
+	tokenExpire   = 30 * 24 * time.Hour // token 有效期 30 天
 )
 
 var (
@@ -819,7 +819,7 @@ type MkdirRequest struct {
 // CreateFileRequest 创建文件请求
 type CreateFileRequest struct {
 	Path    string `json:"path" binding:"required"` // 相对于 data 的路径，含文件名
-	Content string `json:"content"`                // 初始内容
+	Content string `json:"content"`                 // 初始内容
 }
 
 // handleMkdir 创建目录
