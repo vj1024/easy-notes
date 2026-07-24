@@ -1,0 +1,869 @@
+        :root {
+            --primary: #5645d4;
+            --primary-pressed: #4534b3;
+            --primary-deep: #3a2a99;
+            --on-primary: #ffffff;
+            --brand-navy: #0a1530;
+            --link-blue: #0075de;
+            --canvas: #ffffff;
+            --surface: #f6f5f4;
+            --surface-soft: #fafaf9;
+            --hairline: #e5e3df;
+            --hairline-soft: #ede9e4;
+            --hairline-strong: #c8c4be;
+            --ink: #1a1a1a;
+            --charcoal: #37352f;
+            --slate: #5d5b54;
+            --steel: #787671;
+            --stone: #a4a097;
+            --muted: #bbb8b1;
+            --semantic-success: #1aae39;
+            --semantic-warning: #dd5b00;
+            --semantic-error: #e03131;
+            --card-tint-lavender: #e6e0f5;
+            --card-tint-sky: #dcecfa;
+            --card-tint-mint: #d9f3e1;
+            --card-tint-peach: #ffe8d4;
+            --card-tint-rose: #fde0ec;
+            --card-tint-yellow: #fef7d6;
+            --error-bg: #fdecea;
+            --modal-overlay: rgba(10, 21, 48, 0.4);
+            --vditor-theme: classic;
+        }
+
+        /* ====== Dark Theme ====== */
+        :root[data-theme="dark"] {
+            --primary: #7c6ef0;
+            --primary-pressed: #6b5dd6;
+            --primary-deep: #5645d4;
+            --on-primary: #ffffff;
+            --brand-navy: #0a1530;
+            --link-blue: #4a9eff;
+            --canvas: #0f0f0e;
+            --surface: #1a1a19;
+            --surface-soft: #161615;
+            --hairline: #2a2928;
+            --hairline-soft: #232221;
+            --hairline-strong: #3a3938;
+            --ink: #e8e6e3;
+            --charcoal: #d4d2cc;
+            --slate: #a8a59f;
+            --steel: #8b8985;
+            --stone: #6b6964;
+            --muted: #4a4845;
+            --semantic-success: #2dd966;
+            --semantic-warning: #ff8c42;
+            --semantic-error: #ff6b6b;
+            --card-tint-lavender: #2d2540;
+            --card-tint-sky: #1a2940;
+            --card-tint-mint: #1a3328;
+            --card-tint-peach: #3d2818;
+            --card-tint-rose: #3d1a2a;
+            --card-tint-yellow: #332c18;
+            --error-bg: #3d1a1a;
+            --modal-overlay: rgba(0, 0, 0, 0.6);
+            --vditor-theme: dark;
+        }
+
+        body, .sidebar, .editor-area, .modal, .context-menu, .status-bar, .editor-topbar {
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            background: var(--surface);
+            color: var(--ink);
+        }
+
+        /* ====== 主容器 ====== */
+        .app {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ====== 侧边栏 ====== */
+        .sidebar {
+            width: 260px;
+            min-width: 200px;
+            max-width: 400px;
+            height: 100%;
+            background: var(--canvas);
+            border-right: 1px solid var(--hairline);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        /* 侧边栏头部 */
+        .sidebar-header {
+            padding: 14px 12px 0;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .theme-toggle svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .theme-toggle {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--slate);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, color 0.15s;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle:hover {
+            background: var(--surface);
+            color: var(--ink);
+        }
+
+        .sidebar-actions {
+            display: flex;
+            gap: 4px;
+            padding: 0 4px;
+            margin-bottom: 8px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 6px 8px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--slate);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-family: inherit;
+        }
+
+        .action-btn:hover {
+            background: var(--surface);
+            color: var(--ink);
+        }
+
+        .action-btn.danger:hover {
+            background: var(--error-bg);
+            color: var(--semantic-error);
+        }
+
+        .action-btn .icon {
+            font-size: 14px;
+        }
+
+        .sidebar-brand-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-brand-logo {
+            width: 22px;
+            height: 22px;
+            background: var(--primary);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--on-primary);
+        }
+
+        .sidebar-brand-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink);
+            letter-spacing: -0.3px;
+        }
+
+        /* 操作按钮栏 */
+
+
+
+
+
+        /* 搜索框 */
+        .search-box {
+            padding: 0 4px;
+            margin-bottom: 4px;
+        }
+
+        .search-input-wrap {
+            position: relative;
+        }
+
+        .search-input-wrap .search-icon {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--stone);
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 7px 12px 7px 32px;
+            border: 1px solid var(--hairline);
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--ink);
+            background: var(--surface-soft);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+            font-family: inherit;
+        }
+
+        .search-input::placeholder { color: var(--stone); }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(86, 69, 212, 0.12);
+            background: var(--canvas);
+        }
+
+        .search-stats {
+            padding: 4px 8px;
+            font-size: 11px;
+            color: var(--stone);
+            font-style: italic;
+        }
+
+        /* 文件树 */
+        #file-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 4px;
+        }
+
+        /* 拖拽手柄 */
+        .resize-handle {
+            width: 8px;
+            height: 100%;
+            background: transparent;
+            cursor: col-resize;
+            position: absolute;
+            right: -4px;
+            top: 0;
+            z-index: 10;
+            transition: background 0.2s;
+        }
+
+        .resize-handle:hover { background: var(--primary); opacity: 0.5; }
+        .resize-handle.active { background: var(--primary); opacity: 0.8; }
+
+        /* ====== 编辑器区域 ====== */
+        .editor-area {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            min-width: 400px;
+            background: var(--canvas);
+            overflow: hidden;
+        }
+
+        /* 编辑器顶部栏 */
+        .editor-topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--hairline-soft);
+            flex-shrink: 0;
+            min-height: 44px;
+        }
+
+        .editor-topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--slate);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .breadcrumb .sep { color: var(--stone); margin: 0 2px; }
+
+        .breadcrumb .current {
+            color: var(--ink);
+            font-weight: 500;
+        }
+
+        .save-indicator {
+            font-size: 11px;
+            color: var(--stone);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .save-indicator.dirty { color: var(--semantic-warning); }
+        .save-indicator.saved { color: var(--semantic-success); }
+
+        /* 编辑器内容 */
+        .editor-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #vditor-container {
+            flex: 1;
+            overflow: hidden;
+            background: var(--canvas);
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            padding: 6px 16px;
+            background: var(--surface);
+            border-top: 1px solid var(--hairline-soft);
+            font-size: 11px;
+            color: var(--stone);
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+        }
+
+        /* ====== 空状态 ====== */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--stone);
+            text-align: center;
+            padding: 40px;
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--surface);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin-bottom: 20px;
+            border: 1px solid var(--hairline);
+        }
+
+        .empty-state h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--charcoal);
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+            color: var(--stone);
+            line-height: 1.5;
+        }
+
+        /* 加载状态 */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--stone);
+            font-size: 14px;
+        }
+
+        .loading::before {
+            content: "";
+            display: block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--hairline);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-box {
+            color: var(--semantic-error);
+            padding: 12px 16px;
+            background: var(--error-bg);
+            border-radius: 8px;
+            margin: 16px;
+            font-size: 13px;
+            border-left: 3px solid var(--semantic-error);
+        }
+
+        /* ====== 未授权状态 ====== */
+        .unauthorized {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .unauthorized-msg {
+            color: var(--semantic-error);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            padding: 10px 24px;
+            background: var(--primary);
+            color: var(--on-primary);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s;
+        }
+
+        .btn-primary:hover { background: var(--primary-deep); }
+
+        /* ====== 右键菜单 ====== */
+        .context-menu {
+            position: fixed;
+            background: var(--canvas);
+            border: 1px solid var(--hairline);
+            border-radius: 10px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            padding: 4px;
+            z-index: 10000;
+            min-width: 180px;
+            display: none;
+        }
+
+        .ctx-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--charcoal);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.1s;
+        }
+
+        .ctx-item:hover { background: var(--surface); }
+
+        .ctx-item.danger { color: var(--semantic-error); }
+        .ctx-item.danger:hover { background: var(--error-bg); }
+
+        .ctx-divider {
+            height: 1px;
+            background: var(--hairline-soft);
+            margin: 4px 0;
+        }
+
+        /* ====== 弹窗 ====== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-overlay);
+            z-index: 10001;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: var(--canvas);
+            border-radius: 14px;
+            padding: 24px;
+            min-width: 380px;
+            max-width: 90vw;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 16px;
+            letter-spacing: -0.3px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--hairline-strong);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--ink);
+            background: var(--canvas);
+            outline: none;
+            margin-bottom: 16px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            font-family: inherit;
+            height: 40px;
+        }
+
+        .modal input::placeholder { color: var(--stone); }
+
+        .modal input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(86, 69, 212, 0.12);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .modal-actions button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--hairline);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .btn-cancel {
+            background: var(--canvas);
+            color: var(--charcoal);
+        }
+
+        .btn-cancel:hover { background: var(--surface); }
+
+        .btn-confirm {
+            background: var(--primary);
+            color: var(--on-primary);
+            border-color: var(--primary);
+        }
+
+        .btn-confirm:hover { background: var(--primary-deep); }
+
+        .btn-danger-confirm {
+            background: var(--semantic-error);
+            color: #fff;
+            border-color: var(--semantic-error);
+        }
+
+        .btn-danger-confirm:hover { background: #c62828; }
+
+        .delete-message {
+            margin: 0 0 16px;
+            color: var(--slate);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* ====== jsTree 定制 ====== */
+        .jstree-default .jstree-anchor {
+            border-radius: 6px !important;
+            margin: 1px 0;
+            padding: 0 8px !important;
+            height: 28px !important;
+            line-height: 28px !important;
+            font-size: 13px !important;
+            cursor: pointer;
+            color: var(--charcoal);
+            transition: background-color 0.12s ease, color 0.12s ease;
+        }
+
+        /* hover */
+        .jstree-default .jstree-hovered {
+            background: var(--surface) !important;
+            box-shadow: none !important;
+            color: var(--ink) !important;
+        }
+
+        /* 选中态 - light: 柔和淡紫底 + 深紫字 + 左侧紫色指示条 */
+        .jstree-default .jstree-clicked {
+            background: rgba(86, 69, 212, 0.1) !important;
+            color: var(--primary) !important;
+            box-shadow: none !important;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .jstree-default .jstree-clicked::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            border-radius: 0 3px 3px 0;
+            background: var(--primary);
+        }
+
+        /* dark 模式选中态 - 半透明紫 + 亮紫字 */
+        :root[data-theme="dark"] .jstree-default .jstree-clicked {
+            background: rgba(124, 110, 240, 0.15) !important;
+            color: #a89cff !important;
+        }
+
+        :root[data-theme="dark"] .jstree-default .jstree-clicked::before {
+            background: #a89cff;
+        }
+
+        :root[data-theme="dark"] .jstree-default .jstree-hovered {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: var(--ink) !important;
+        }
+
+        :root[data-theme="dark"] .jstree-default .jstree-anchor {
+            color: var(--charcoal);
+        }
+
+        .jstree-default .jstree-icon {
+            line-height: 28px !important;
+        }
+
+        .jstree-default .jstree-themeicon { font-size: 12px; }
+
+        /* ====== 滚动条 ====== */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--hairline-strong); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--stone); }
+
+        /* ====== Vditor 覆盖 ====== */
+        #vditor { height: 100% !important; max-height: 100%; }
+
+        /* ====== Ace 文本编辑器 ====== */
+        #ace-editor {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            font-size: 14px;
+        }
+
+        /* ====== Vditor Dark Mode 覆盖 ====== */
+        :root[data-theme="dark"] .vditor {
+            background-color: var(--canvas) !important;
+            border-color: var(--hairline) !important;
+        }
+        :root[data-theme="dark"] .vditor-toolbar {
+            background-color: var(--surface) !important;
+            border-color: var(--hairline) !important;
+        }
+        :root[data-theme="dark"] .vditor-toolbar .vditor-tooltipped {
+            color: var(--slate) !important;
+        }
+        :root[data-theme="dark"] .vditor-toolbar .vditor-tooltipped:hover {
+            color: var(--ink) !important;
+            background-color: var(--surface-soft) !important;
+        }
+        :root[data-theme="dark"] .vditor-content {
+            background-color: var(--canvas) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-textarea {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-sv {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-wysiwyg {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-ir {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-preview {
+            background-color: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-outline {
+            background-color: var(--surface) !important;
+            border-color: var(--hairline) !important;
+        }
+        :root[data-theme="dark"] .vditor-outline__title {
+            color: var(--steel) !important;
+        }
+        :root[data-theme="dark"] .vditor-outline__content li span,
+        :root[data-theme="dark"] .vditor-outline__content li a,
+        :root[data-theme="dark"] .vditor-outline__content li {
+            color: var(--steel) !important;
+        }
+        :root[data-theme="dark"] .vditor-outline__content li span:hover,
+        :root[data-theme="dark"] .vditor-outline__content li a:hover {
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-outline .vditor-outline__item--current,
+        :root[data-theme="dark"] .vditor-outline__content li.vditor-outline__item--current span {
+            color: var(--primary) !important;
+            background-color: var(--surface-soft) !important;
+        }
+        :root[data-theme="dark"] .vditor-hint {
+            background-color: var(--surface) !important;
+            border-color: var(--hairline-strong) !important;
+        }
+        :root[data-theme="dark"] .vditor-hint .vditor-hint__item {
+            color: var(--charcoal) !important;
+        }
+        :root[data-theme="dark"] .vditor-hint .vditor-hint__item--current {
+            background-color: var(--primary) !important;
+            color: var(--on-primary) !important;
+        }
+        :root[data-theme="dark"] .vditor-tip {
+            background-color: var(--surface) !important;
+            color: var(--charcoal) !important;
+        }
+        :root[data-theme="dark"] .vditor-export__item {
+            color: var(--charcoal) !important;
+        }
+        :root[data-theme="dark"] .vditor-export__item:hover {
+            background-color: var(--surface-soft) !important;
+        }
+        :root[data-theme="dark"] .vditor-comment {
+            background-color: var(--surface) !important;
+            border-color: var(--hairline) !important;
+        }
+        :root[data-theme="dark"] .vditor-input {
+            border-color: var(--hairline-strong) !important;
+            color: var(--ink) !important;
+            background: var(--canvas) !important;
+        }
+        :root[data-theme="dark"] .vditor-input:focus {
+            border-color: var(--primary) !important;
+        }
+        :root[data-theme="dark"] .vditor-button {
+            color: var(--charcoal) !important;
+            border-color: var(--hairline-strong) !important;
+        }
+        :root[data-theme="dark"] .vditor-button--current {
+            color: var(--primary) !important;
+            border-color: var(--primary) !important;
+        }
+        :root[data-theme="dark"] code,
+        :root[data-theme="dark"] pre {
+            background: var(--surface) !important;
+            color: var(--ink) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset code {
+            background: var(--surface) !important;
+            color: var(--charcoal) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset pre {
+            background: var(--surface-soft) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset blockquote {
+            color: var(--slate) !important;
+            border-color: var(--hairline-strong) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset table td,
+        :root[data-theme="dark"] .vditor-reset table th {
+            border-color: var(--hairline) !important;
+        }
+        :root[data-theme="dark"] .vditor-reset table tr:nth-child(2n) {
+            background: var(--surface-soft) !important;
+        }
+
+        /* ====== 移动端 ====== */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 10px; left: 10px;
+            z-index: 999;
+            background: var(--primary);
+            color: var(--on-primary);
+            border: none;
+            border-radius: 10px;
+            width: 40px; height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .overlay-backdrop {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--modal-overlay);
+            z-index: 998;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+
+        .overlay-backdrop.visible { display: block; }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed !important;
+                top: 0; left: 0;
+                width: 100vw !important;
+                height: 100vh !important;
+                max-width: none !important;
+                z-index: 1001 !important;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+            }
+
+            .sidebar.sidebar-open { transform: translateX(0); }
+
+            .mobile-toggle { display: flex; align-items: center; justify-content: center; }
+
+            .editor-area { min-width: 0; width: 100%; }
+
+            .resize-handle { display: none !important; }
+        }
+
+        @media (max-width: 400px) {
+            .sidebar-actions { flex-wrap: wrap; }
+            .modal { min-width: 300px; padding: 20px; }
+        }

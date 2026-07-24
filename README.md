@@ -5,10 +5,18 @@ A simple and secure web-based note editor built with Go and Gin framework. Featu
 ## Features
 
 - **JWT Authentication** - Secure login with bcrypt password hashing
-- **File Management** - Browse, create, upload, and edit files
+- **File Management** - Browse, create, upload, edit, and delete files/folders
 - **Tree View** - Visual folder/file tree using jsTree format
-- **Web Editor** - Clean browser-based editor interface
-- **Embedded Assets** - All web assets embedded in binary
+- **Dual Web Editors** - Vditor for Markdown and Ace for other text formats
+- **Safe Storage** - Symlink-safe paths, atomic saves, and a 50 MB request limit
+- **Offline Embedded Assets** - Application and third-party assets are embedded in the binary
+
+Embedded editor dependencies are pinned for reproducible offline builds:
+
+- Vditor `3.11.2` (current official npm `latest`)
+- Ace `1.32.6`
+- jsTree `3.3.12`
+- jQuery `3.6.0`
 
 ## Tech Stack
 
@@ -65,23 +73,35 @@ export ADMIN_PASSWORD="your-password"
 ./easy-notes
 ```
 
-The server will start on `http://localhost:8089`
+The server will start on `http://localhost:8089`. The editor does not require
+Internet access: jQuery, jsTree, Vditor, Ace, themes, modes, and supporting
+assets are served from the embedded filesystem.
 
 ## API Endpoints
 
 ### Public Routes
 - `GET /` - Redirect to login
 - `GET /login` - Login page
-- `GET /editor` - Editor page (requires auth)
+- `GET /editor` - Editor shell; its file APIs require authentication
+- `GET /assets/*path` - Embedded CSS, JavaScript, themes, and editor resources
 - `POST /api/login` - Authenticate and get JWT token
 - `GET /api/check-auth` - Check authentication status
 
 ### Authenticated Routes (requires JWT token)
 - `GET /api/files?list=true` - List files in tree format
+- `GET /api/files?search=keyword` - Search supported text files
 - `GET /api/files/*path` - Get file content or directory listing
-- `PUT /api/files/*path` - Upload/update file
-- `POST /api/files/*path` - Upload file (multipart/form-data)
+- `PUT /api/files/*path` - Create or replace a file from the request body
+- `POST /api/files/*path` - Create or replace a raw-body or multipart file
+- `DELETE /api/files/*path` - Delete a file or non-root folder recursively
+- `POST /api/mkdir` - Create a folder (`{"path":"folder"}`)
+- `POST /api/create-file` - Create a file (`{"path":"note.txt","content":""}`)
 - `POST /api/logout` - Logout
+
+All authenticated request bodies are limited to 50 MB. Oversized bodies return
+HTTP `413 Request Entity Too Large`. File replacements are atomic: incomplete
+requests do not truncate the existing file. Paths containing symbolic links are
+rejected.
 
 ### Authentication
 
@@ -93,13 +113,20 @@ Include JWT token in requests:
 
 ```
 easy-notes/
-├── main.go      # Main application with routes and handlers
+├── main.go              # Configuration, server setup, auth and middleware
+├── handlers_files.go    # File API handlers and search
+├── storage.go           # Safe path resolution and atomic file writes
 ├── jstree.go    # Tree structure generation for file browser
 ├── web/         # Embedded web assets
 │   ├── login.html
 │   ├── editor.html
+│   ├── assets/
+│   │   ├── css/         # Page styles
+│   │   ├── js/          # Page behavior
+│   │   └── vendor/      # Pinned offline third-party dependencies
 │   ├── favicon.ico
 │   └── embed.go
+├── storage_test.go      # Storage boundary and request-limit tests
 ├── data/        # Storage directory (created automatically)
 ├── start.sh     # Startup script
 ├── go.mod
