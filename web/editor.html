@@ -688,6 +688,14 @@
         /* ====== Vditor 覆盖 ====== */
         #vditor { height: 100% !important; max-height: 100%; }
 
+        /* ====== Ace 文本编辑器 ====== */
+        #ace-editor {
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+            font-size: 14px;
+        }
+
         /* ====== Vditor Dark Mode 覆盖 ====== */
         :root[data-theme="dark"] .vditor {
             background-color: var(--canvas) !important;
@@ -988,6 +996,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
 <script src="https://unpkg.com/vditor@3.11.2/dist/index.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ext-modelist.min.js"></script>
 <script>
 // ====== 主题管理 (提前执行避免闪烁) ======
 const THEME_KEY = 'easynotes-theme';
@@ -1015,6 +1025,9 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
         if (window.vditorInstance) {
             try { window.vditorInstance.setTheme(getVditorThemeName(resolved)); } catch(e) {}
         }
+        if (window.aceEditorInstance) {
+            window.aceEditorInstance.setTheme(resolved === 'dark' ? 'ace/theme/tomorrow_night' : 'ace/theme/textmate');
+        }
         updateThemeToggleIcon();
     }
 });
@@ -1038,6 +1051,9 @@ function cycleTheme() {
     if (window.vditorInstance) {
         try { window.vditorInstance.setTheme(getVditorThemeName(resolved)); } catch(e) {}
     }
+    if (window.aceEditorInstance) {
+        window.aceEditorInstance.setTheme(resolved === 'dark' ? 'ace/theme/tomorrow_night' : 'ace/theme/textmate');
+    }
     updateThemeToggleIcon();
 }
 
@@ -1046,6 +1062,7 @@ $(function () {
     let currentSearchTerm = '';
     let searchTimeout = null;
     let vditor = null;
+    let aceEditor = null;
     let currentFile = null;
     let saveInterval = null;
     let isDirty = false;
@@ -1076,7 +1093,7 @@ $(function () {
             </div>
         `);
         $('#login-button').on('click', redirectToLogin);
-        if (vditor) { vditor.destroy(); vditor = null; }
+        destroyActiveEditor();
         currentFile = null; isDirty = false;
         setTimeout(redirectToLogin, 2000);
     }
@@ -1192,7 +1209,7 @@ $(function () {
             const filePath = buildFilePath(node);
             updateBreadcrumb(filePath, true);
             $('#vditor-container').html('<div class="empty-state"><div class="empty-state-icon">📁</div><h3>' + node.text + '</h3><p>选择文件夹内的文件进行编辑</p></div>');
-            if (vditor) { vditor.destroy(); vditor = null; }
+            destroyActiveEditor();
             clearSaveInterval(); currentFile = null; isDirty = false;
         }
     });
@@ -1200,7 +1217,7 @@ $(function () {
     // ====== 文件操作 ======
     function loadFileForEditing(node) {
         if (!checkAuth()) return;
-        if (isDirty && currentFile && vditor) {
+        if (isDirty && currentFile && hasActiveEditor()) {
             if (confirm('当前文件有未保存的更改，是否先保存？')) {
                 saveCurrentFile().then(() => loadNewFile(node)).catch(() => loadNewFile(node));
             } else { loadNewFile(node); }
@@ -1209,7 +1226,7 @@ $(function () {
 
     function loadFileByPath(filePath, fileName) {
         if (!checkAuth()) return;
-        if (isDirty && currentFile && vditor) {
+        if (isDirty && currentFile && hasActiveEditor()) {
             if (confirm('当前文件有未保存的更改，是否先保存？')) {
                 saveCurrentFile().then(() => loadNewFileByPath(filePath, fileName)).catch(() => loadNewFileByPath(filePath, fileName));
             } else { loadNewFileByPath(filePath, fileName); }
@@ -1226,7 +1243,7 @@ $(function () {
             .then(function (content) {
                 currentFile = { id: node.id, name: node.text, path: filePath };
                 const savedPosition = getFileScrollPosition(filePath);
-                initEditor(content, savedPosition);
+                initEditor(content, savedPosition, filePath);
                 $('#status-left').text('就绪');
                 isDirty = false;
             })
@@ -1246,7 +1263,7 @@ $(function () {
             .then(function (content) {
                 currentFile = { id: 'search-' + filePath, name: fileName, path: filePath };
                 const savedPosition = getFileScrollPosition(filePath);
-                initEditor(content, savedPosition);
+                initEditor(content, savedPosition, filePath);
                 $('#status-left').text('就绪');
                 isDirty = false;
             })
@@ -1282,13 +1299,18 @@ $(function () {
 
     // ====== 滚动位置持久化 ======
     function saveFileScrollPosition(filePath) {
-        if (!vditor || !filePath) return;
+        if ((!vditor && !aceEditor) || !filePath) return;
         try {
             const d = { previewScrollTop: 0, irScrollTop: 0, svScrollTop: 0, wysiwygScrollTop: 0, timestamp: Date.now() };
-            if (vditor.vditor?.preview?.element) d.previewScrollTop = vditor.vditor.preview.element.scrollTop;
-            if (vditor.vditor?.ir?.element) d.irScrollTop = vditor.vditor.ir.element.scrollTop;
-            if (vditor.vditor?.sv?.element) d.svScrollTop = vditor.vditor.sv.element.scrollTop;
-            if (vditor.vditor?.wysiwyg?.element) d.wysiwygScrollTop = vditor.vditor.wysiwyg.element.scrollTop;
+            if (vditor?.vditor?.preview?.element) d.previewScrollTop = vditor.vditor.preview.element.scrollTop;
+            if (vditor?.vditor?.ir?.element) d.irScrollTop = vditor.vditor.ir.element.scrollTop;
+            if (vditor?.vditor?.sv?.element) d.svScrollTop = vditor.vditor.sv.element.scrollTop;
+            if (vditor?.vditor?.wysiwyg?.element) d.wysiwygScrollTop = vditor.vditor.wysiwyg.element.scrollTop;
+            if (aceEditor) {
+                d.aceScrollTop = aceEditor.session.getScrollTop();
+                d.aceScrollLeft = aceEditor.session.getScrollLeft();
+                d.aceCursor = aceEditor.getCursorPosition();
+            }
             localStorage.setItem(`file_scroll_position_${filePath}`, JSON.stringify(d));
         } catch (e) { /* ignore */ }
     }
@@ -1299,9 +1321,41 @@ $(function () {
         catch (e) { return null; }
     }
 
-    // ====== Vditor 编辑器 ======
-    function initEditor(content, savedPosition = null) {
-        if (vditor) { vditor.destroy(); vditor = null; }
+    // ====== 编辑器选择：Markdown 使用 Vditor，其他文本使用 Ace ======
+    function isMarkdownFile(filePath) {
+        return /\.(md|markdown|mkd|mdown|mkdn|mdwn|mdtxt|mdtext|rmd)$/i.test(filePath || '');
+    }
+
+    function hasActiveEditor() {
+        return Boolean(vditor || aceEditor);
+    }
+
+    function destroyActiveEditor() {
+        if (vditor) {
+            vditor.destroy();
+            vditor = null;
+            window.vditorInstance = null;
+        }
+        if (aceEditor) {
+            aceEditor.destroy();
+            aceEditor = null;
+            window.aceEditorInstance = null;
+        }
+    }
+
+    function markDirty() {
+        if (!isDirty) {
+            isDirty = true;
+            $('#save-indicator').addClass('dirty').removeClass('saved').text('● 未保存');
+        }
+    }
+
+    function initEditor(content, savedPosition = null, filePath = '') {
+        destroyActiveEditor();
+        if (!isMarkdownFile(filePath)) {
+            initTextEditor(content, savedPosition, filePath);
+            return;
+        }
         $('#vditor-container').html('<div id="vditor"></div>');
 
         const isMobile = window.innerWidth <= 576;
@@ -1329,10 +1383,7 @@ $(function () {
             },
             outline: { enable: true, position: 'right' },
             input: function () {
-                if (!isDirty) {
-                    isDirty = true;
-                    $('#save-indicator').addClass('dirty').removeClass('saved').text('● 未保存');
-                }
+                markDirty();
                 if (currentFile?.path) saveFileScrollPosition(currentFile.path);
             },
             focus: function () { startAutoSave(); },
@@ -1364,6 +1415,52 @@ $(function () {
         isDirty = false;
     }
 
+    function initTextEditor(content, savedPosition, filePath) {
+        $('#vditor-container').html('<div id="ace-editor"></div>');
+        aceEditor = ace.edit('ace-editor');
+        window.aceEditorInstance = aceEditor;
+
+        const resolvedTheme = resolveTheme(getStoredTheme());
+        aceEditor.setTheme(resolvedTheme === 'dark' ? 'ace/theme/tomorrow_night' : 'ace/theme/textmate');
+        aceEditor.session.setValue(content || '');
+        aceEditor.session.setUseWorker(false);
+        aceEditor.session.setUseWrapMode(true);
+        aceEditor.setOptions({
+            fontSize: '14px',
+            showPrintMargin: false,
+            tabSize: 4,
+            useSoftTabs: true,
+            scrollPastEnd: 0.25
+        });
+
+        try {
+            const modelist = ace.require('ace/ext/modelist');
+            aceEditor.session.setMode(modelist.getModeForPath(filePath).mode);
+        } catch (e) {
+            aceEditor.session.setMode('ace/mode/text');
+        }
+
+        aceEditor.session.getUndoManager().reset();
+        aceEditor.session.on('change', function () {
+            markDirty();
+        });
+        aceEditor.on('focus', startAutoSave);
+        aceEditor.on('blur', function () {
+            clearSaveInterval();
+            if (currentFile?.path) saveFileScrollPosition(currentFile.path);
+        });
+
+        if (savedPosition) {
+            aceEditor.session.setScrollTop(savedPosition.aceScrollTop || 0);
+            aceEditor.session.setScrollLeft(savedPosition.aceScrollLeft || 0);
+            if (savedPosition.aceCursor) aceEditor.moveCursorToPosition(savedPosition.aceCursor);
+        }
+        aceEditor.clearSelection();
+        aceEditor.resize();
+        startAutoSave();
+        isDirty = false;
+    }
+
     function adjustEditorHeight() {
         if (vditor && window.innerWidth <= 576) {
             const c = document.getElementById('vditor-container');
@@ -1374,15 +1471,15 @@ $(function () {
     // ====== 保存 ======
     function startAutoSave() {
         clearSaveInterval();
-        saveInterval = setInterval(() => { if (isDirty && currentFile && vditor) saveCurrentFile(); }, 3000);
+        saveInterval = setInterval(() => { if (isDirty && currentFile && hasActiveEditor()) saveCurrentFile(); }, 3000);
     }
 
     function clearSaveInterval() { if (saveInterval) { clearInterval(saveInterval); saveInterval = null; } }
 
     function saveCurrentFile() {
         return new Promise((resolve, reject) => {
-            if (!currentFile || !vditor) { reject('没有文件可保存'); return; }
-            const content = vditor.getValue();
+            if (!currentFile || !hasActiveEditor()) { reject('没有文件可保存'); return; }
+            const content = vditor ? vditor.getValue() : aceEditor.getValue();
             $('#save-indicator').text('保存中...').removeClass('dirty saved');
             authAjax({ url: BASE_URL + `/api/files/${currentFile.path}`, method: 'POST', contentType: 'text/plain', data: content })
                 .then(function () {
@@ -1400,7 +1497,7 @@ $(function () {
 
     // Ctrl+S
     $(document).on('keydown', function (e) {
-        if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (currentFile && vditor) saveCurrentFile(); }
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (currentFile && hasActiveEditor()) saveCurrentFile(); }
     });
 
     // ====== 拖拽调整 ======
@@ -1424,6 +1521,7 @@ $(function () {
             if (w >= 200 && w <= 500) {
                 sidebar.style.width = w + 'px';
                 if (vditor) setTimeout(() => vditor.resize(), 50);
+                if (aceEditor) setTimeout(() => aceEditor.resize(), 50);
             }
         }
 
@@ -1447,6 +1545,7 @@ $(function () {
 
     $(window).on('resize', function () {
         if (vditor) setTimeout(() => vditor.resize(), 100);
+        if (aceEditor) setTimeout(() => aceEditor.resize(), 100);
         if (window.innerWidth <= 576) adjustEditorHeight();
     });
 
@@ -1467,7 +1566,10 @@ $(function () {
                 if (node?.type === 'file') {
                     sidebar.classList.remove('sidebar-open');
                     backdrop.classList.remove('visible');
-                    setTimeout(() => { if (vditor) vditor.resize(); }, 300);
+                    setTimeout(() => {
+                        if (vditor) vditor.resize();
+                        if (aceEditor) aceEditor.resize();
+                    }, 300);
                 }
             }
         });
@@ -1553,7 +1655,7 @@ $(function () {
             .then(() => {
                 closeModal('modal-delete');
                 if (currentFile && (currentFile.path === filePath || filePath.startsWith(currentFile.path + '/'))) {
-                    if (vditor) { vditor.destroy(); vditor = null; }
+                    destroyActiveEditor();
                     currentFile = null; isDirty = false;
                     $('#vditor-container').html('<div class="empty-state"><div class="empty-state-icon">📝</div><h3>选择文件开始编辑</h3><p>从左侧选择一个文件，或创建新文件</p></div>');
                     $('#breadcrumb').html('<span class="current">EasyNotes</span>');
