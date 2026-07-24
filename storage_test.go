@@ -139,3 +139,35 @@ func TestEmbeddedEditorAssetsAreServedLocally(t *testing.T) {
 		}
 	}
 }
+
+func TestEmbeddedAssetsUseContentETags(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	router := newRouter()
+
+	for _, requestPath := range []string{"/editor", "/assets/js/editor.js"} {
+		firstRequest := httptest.NewRequest(http.MethodGet, requestPath, nil)
+		firstResponse := httptest.NewRecorder()
+		router.ServeHTTP(firstResponse, firstRequest)
+		if firstResponse.Code != http.StatusOK {
+			t.Fatalf("first GET %s status = %d, want %d", requestPath, firstResponse.Code, http.StatusOK)
+		}
+		etag := firstResponse.Header().Get("ETag")
+		if etag == "" {
+			t.Fatalf("GET %s has no ETag", requestPath)
+		}
+		if got := firstResponse.Header().Get("Cache-Control"); got != "public, max-age=0, must-revalidate" {
+			t.Fatalf("GET %s Cache-Control = %q", requestPath, got)
+		}
+
+		cachedRequest := httptest.NewRequest(http.MethodGet, requestPath, nil)
+		cachedRequest.Header.Set("If-None-Match", etag)
+		cachedResponse := httptest.NewRecorder()
+		router.ServeHTTP(cachedResponse, cachedRequest)
+		if cachedResponse.Code != http.StatusNotModified {
+			t.Fatalf("cached GET %s status = %d, want %d", requestPath, cachedResponse.Code, http.StatusNotModified)
+		}
+		if cachedResponse.Body.Len() != 0 {
+			t.Fatalf("cached GET %s transferred %d body bytes", requestPath, cachedResponse.Body.Len())
+		}
+	}
+}

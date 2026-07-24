@@ -123,16 +123,25 @@ func main() {
 
 func newRouter() *gin.Engine {
 	router := gin.Default()
+	webFiles, err := web.NewCachingFileHandler(web.FS)
+	if err != nil {
+		panic(err)
+	}
+	assetFiles, err := web.NewCachingFileHandler(web.Assets())
+	if err != nil {
+		panic(err)
+	}
+
 	// 中间件
 	router.Use(CORSMiddleware())
 	router.Use(ErrorRecovery())
 
 	// 公开路由 - 登录相关
 	router.GET("/", redirectToLogin)
-	router.GET("/editor", serveEditorPage)
-	router.GET("/login", serveLoginPage)
-	router.GET("/favicon.ico", serveFavicon)
-	router.StaticFS("/assets", http.FS(web.Assets()))
+	router.GET("/editor", serveEmbeddedFile(webFiles, "editor.html"))
+	router.GET("/login", serveEmbeddedFile(webFiles, "login.html"))
+	router.GET("/favicon.ico", serveEmbeddedFile(webFiles, "favicon.ico"))
+	router.GET("/assets/*filepath", gin.WrapH(http.StripPrefix("/assets", assetFiles)))
 	router.POST("/api/login", loginHandler)
 	router.GET("/api/check-auth", checkAuthHandler)
 
@@ -166,19 +175,11 @@ func GenerateJsTreeWithFilterAndSort(rootPath string) ([]*JsTreeNode, error) {
 	return GenerateJsTree(rootPath)
 }
 
-// 文件编辑页面
-func serveEditorPage(c *gin.Context) {
-	c.FileFromFS("editor.html", http.FS(web.FS))
-}
-
-// 登录页面
-func serveLoginPage(c *gin.Context) {
-	c.FileFromFS("login.html", http.FS(web.FS))
-}
-
-// 登录页面
-func serveFavicon(c *gin.Context) {
-	c.FileFromFS("favicon.ico", http.FS(web.FS))
+func serveEmbeddedFile(handler http.Handler, filePath string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Request.URL.Path = "/" + filePath
+		handler.ServeHTTP(c.Writer, c.Request)
+	}
 }
 
 // 重定向到登录页

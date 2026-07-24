@@ -77,6 +77,11 @@ The server will start on `http://localhost:8089`. The editor does not require
 Internet access: jQuery, jsTree, Vditor, Ace, themes, modes, and supporting
 assets are served from the embedded filesystem.
 
+Embedded pages and assets use strong content-based `ETag` values. Browsers keep
+the local copy and revalidate it with the server; unchanged files receive a
+bodyless HTTP `304 Not Modified`, while changed files get a new ETag and are
+downloaded normally.
+
 ## API Endpoints
 
 ### Public Routes
