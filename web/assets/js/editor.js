@@ -136,7 +136,8 @@ $(function () {
         const searchTerm = $(this).val().trim();
         currentSearchTerm = searchTerm;
         clearTimeout(searchTimeout);
-        if (searchTerm.length > 0 && searchTerm.replace(/\s+/g, '').length < 2) {
+        const effectiveTerm = searchTerm.startsWith('/') ? searchTerm.slice(1).trim() : searchTerm;
+        if (searchTerm.length > 0 && effectiveTerm.replace(/\s+/g, '').length < 2) {
             $('#search-stats').text('请输入至少2个有效字符');
             return;
         }

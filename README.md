@@ -94,7 +94,8 @@ downloaded normally.
 
 ### Authenticated Routes (requires JWT token)
 - `GET /api/files?list=true` - List files in tree format
-- `GET /api/files?search=keyword` - Search supported text files
+- `GET /api/files?search=keyword` - Search file names only
+- `GET /api/files?search=/keyword` - Search file names and supported text-file contents
 - `GET /api/files/*path` - Get file content or directory listing
 - `PUT /api/files/*path` - Create or replace a file from the request body
 - `POST /api/files/*path` - Create or replace a raw-body or multipart file

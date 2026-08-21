@@ -168,6 +168,11 @@ func serveFile(c *gin.Context, fullPath, requestPath string) {
 }
 
 func performSearch(c *gin.Context, rootPath, searchTerm string) {
+	searchContent := strings.HasPrefix(searchTerm, "/")
+	if searchContent {
+		searchTerm = strings.TrimSpace(strings.TrimPrefix(searchTerm, "/"))
+	}
+
 	// 将搜索词按空格分割为多个关键字
 	keywords := strings.Fields(searchTerm)
 	if len(keywords) == 0 {
@@ -213,9 +218,9 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 			}
 		}
 
-		// 如果文件名不匹配所有关键字，则检查文件内容
+		// 仅当搜索词以 / 开头且文件名未匹配时，才读取文件内容。
 		contentMatched := false
-		if !filenameMatched {
+		if searchContent && !filenameMatched {
 			content, err := os.ReadFile(path)
 			if err != nil {
 				// 如果无法读取文件内容，跳过
