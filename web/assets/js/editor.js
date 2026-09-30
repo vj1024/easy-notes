@@ -487,7 +487,7 @@ $(function () {
         aceEditor.session.setUseWorker(false);
         aceEditor.session.setUseWrapMode(true);
         aceEditor.setOptions({
-            fontSize: window.innerWidth <= 576 ? '16px' : '14px',
+            fontSize: window.innerWidth <= 576 ? '15px' : '14px',
             showPrintMargin: false,
             tabSize: 4,
             useSoftTabs: true,
