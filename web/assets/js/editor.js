@@ -2,6 +2,20 @@
 const THEME_KEY = 'easynotes-theme';
 ace.config.set('basePath', '/assets/vendor/ace');
 
+function updateAppHeight() {
+    const height = window.visualViewport?.height || window.innerHeight;
+    document.documentElement.style.setProperty('--app-height', `${height}px`);
+}
+
+updateAppHeight();
+window.visualViewport?.addEventListener('resize', updateAppHeight);
+window.visualViewport?.addEventListener('scroll', updateAppHeight);
+window.addEventListener('resize', updateAppHeight);
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+
 function getStoredTheme() { return localStorage.getItem(THEME_KEY) || 'auto'; }
 
 function resolveTheme(theme) {
@@ -68,12 +82,33 @@ $(function () {
     let isDirty = false;
     let lastSaveTime = null;
     let isResizing = false;
+    let deferredInstallPrompt = null;
 
     initResizeHandler();
 
     // 绑定主题切换按钮
     updateThemeToggleIcon();
     $('#theme-toggle').on('click', cycleTheme);
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+        event.preventDefault();
+        deferredInstallPrompt = event;
+        $('#btn-install').prop('hidden', false);
+    });
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    if (isIOS && !isStandalone) $('#btn-install').prop('hidden', false).data('ios', true);
+    $('#btn-install').on('click', async function () {
+        if (!deferredInstallPrompt) {
+            if ($(this).data('ios')) alert('请点击 Safari 的“分享”按钮，然后选择“添加到主屏幕”。');
+            return;
+        }
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        $(this).prop('hidden', true);
+    });
+    window.addEventListener('appinstalled', () => $('#btn-install').prop('hidden', true));
 
     // ====== 认证 ======
     function checkAuth() {
@@ -188,7 +223,8 @@ $(function () {
             'check_callback': true,
             'force_text': true
         },
-        'plugins': ['types'],
+        'plugins': ['types', 'state'],
+        'state': { 'key': 'easy-notes-file-tree' },
         'types': {
             'default': { 'icon': 'jstree-folder' },
             'file': { 'icon': 'jstree-file' }
@@ -347,9 +383,32 @@ $(function () {
     function markDirty() {
         if (!isDirty) {
             isDirty = true;
-            $('#save-indicator').addClass('dirty').removeClass('saved').text('● 未保存');
+            updateSaveIndicator('dirty', '● 未保存', '●');
         }
     }
+
+    function updateSaveIndicator(state, text, compactText) {
+        const indicator = $('#save-indicator');
+        indicator.removeClass('dirty saved failed offline').addClass(state || '');
+        indicator.data('full-text', text).data('compact-text', compactText);
+        indicator.attr('title', text).text(window.innerWidth <= 768 ? compactText : text);
+    }
+
+    function updateNetworkStatus() {
+        if (!navigator.onLine) {
+            updateSaveIndicator('offline', '已离线，更改尚未保存', '⊘');
+        } else if (isDirty) {
+            updateSaveIndicator('dirty', '● 未保存', '●');
+        } else if (lastSaveTime) {
+            updateSaveIndicator('saved', '✓ 已保存 ' + lastSaveTime.toLocaleTimeString(), '✓');
+        }
+    }
+
+    window.addEventListener('online', () => {
+        updateNetworkStatus();
+        if (isDirty && currentFile && hasActiveEditor()) saveCurrentFile().catch(() => {});
+    });
+    window.addEventListener('offline', updateNetworkStatus);
 
     function initEditor(content, savedPosition = null, filePath = '') {
         destroyActiveEditor();
@@ -365,11 +424,11 @@ $(function () {
 
         vditor = new Vditor('vditor', {
             cdn: '/assets/vendor/vditor',
-            height: isMobile ? (window.innerHeight - 40) + 'px' : '100%',
+            height: '100%',
             value: content,
             cache: { enable: false },
             placeholder: '在此编辑文件内容...',
-            toolbar: [
+            toolbar: isMobile ? [] : [
                 "emoji", "headings", "bold", "italic", "strike", "link", "|",
                 "list", "ordered-list", "check", "outdent", "indent", "|",
                 "quote", "line", "code", "inline-code", "insert-before", "insert-after", "|",
@@ -383,7 +442,7 @@ $(function () {
                 current: getVditorThemeName(resolvedTheme),
                 path: '/assets/vendor/vditor/dist/css/content-theme',
             },
-            outline: { enable: true, position: 'right' },
+            outline: { enable: !isMobile, position: 'right' },
             input: function () {
                 markDirty();
                 if (currentFile?.path) saveFileScrollPosition(currentFile.path);
@@ -428,7 +487,7 @@ $(function () {
         aceEditor.session.setUseWorker(false);
         aceEditor.session.setUseWrapMode(true);
         aceEditor.setOptions({
-            fontSize: '14px',
+            fontSize: window.innerWidth <= 576 ? '16px' : '14px',
             showPrintMargin: false,
             tabSize: 4,
             useSoftTabs: true,
@@ -467,14 +526,16 @@ $(function () {
     function adjustEditorHeight() {
         if (vditor && window.innerWidth <= 576) {
             const c = document.getElementById('vditor-container');
-            if (c) { c.style.height = (window.innerHeight - 40) + 'px'; setTimeout(() => vditor.resize(), 100); }
+            if (c) { c.style.height = ''; setTimeout(() => vditor.resize(), 100); }
         }
     }
 
     // ====== 保存 ======
     function startAutoSave() {
         clearSaveInterval();
-        saveInterval = setInterval(() => { if (isDirty && currentFile && hasActiveEditor()) saveCurrentFile(); }, 3000);
+        saveInterval = setInterval(() => {
+            if (isDirty && currentFile && hasActiveEditor()) saveCurrentFile().catch(() => {});
+        }, 3000);
     }
 
     function clearSaveInterval() { if (saveInterval) { clearInterval(saveInterval); saveInterval = null; } }
@@ -482,17 +543,22 @@ $(function () {
     function saveCurrentFile() {
         return new Promise((resolve, reject) => {
             if (!currentFile || !hasActiveEditor()) { reject('没有文件可保存'); return; }
+            if (!navigator.onLine) {
+                updateSaveIndicator('offline', '已离线，更改尚未保存', '⊘');
+                reject('当前处于离线状态');
+                return;
+            }
             const content = vditor ? vditor.getValue() : aceEditor.getValue();
-            $('#save-indicator').text('保存中...').removeClass('dirty saved');
+            updateSaveIndicator('', '保存中...', '⟳');
             authAjax({ url: BASE_URL + `/api/files/${currentFile.path}`, method: 'POST', contentType: 'text/plain', data: content })
                 .then(function () {
                     isDirty = false;
                     lastSaveTime = new Date();
-                    $('#save-indicator').addClass('saved').removeClass('dirty').text('✓ 已保存 ' + lastSaveTime.toLocaleTimeString());
+                    updateSaveIndicator('saved', '✓ 已保存 ' + lastSaveTime.toLocaleTimeString(), '✓');
                     resolve();
                 })
                 .catch(function (e) {
-                    if (e.status !== 401) $('#save-indicator').text('保存失败').addClass('dirty');
+                    if (e.status !== 401) updateSaveIndicator('failed', '保存失败，请检查网络', '!');
                     reject(e);
                 });
         });
@@ -547,28 +613,44 @@ $(function () {
     });
 
     $(window).on('resize', function () {
+        updateAppHeight();
         if (vditor) setTimeout(() => vditor.resize(), 100);
         if (aceEditor) setTimeout(() => aceEditor.resize(), 100);
         if (window.innerWidth <= 576) adjustEditorHeight();
+        const indicator = $('#save-indicator');
+        const text = window.innerWidth <= 768 ? indicator.data('compact-text') : indicator.data('full-text');
+        if (text) indicator.text(text);
     });
 
     // ====== 移动端侧边栏 ======
     (function () {
         const toggle = document.getElementById('mobile-toggle');
+        const closeButton = document.getElementById('sidebar-close');
         const sidebar = document.getElementById('sidebar');
         const backdrop = document.getElementById('overlay-backdrop');
         if (!toggle) return;
 
-        toggle.addEventListener('click', () => { sidebar.classList.add('sidebar-open'); backdrop.classList.add('visible'); });
-        backdrop.addEventListener('click', () => { sidebar.classList.remove('sidebar-open'); backdrop.classList.remove('visible'); });
+        const openSidebar = () => { sidebar.classList.add('sidebar-open'); backdrop.classList.add('visible'); };
+        const closeSidebar = () => { sidebar.classList.remove('sidebar-open'); backdrop.classList.remove('visible'); };
+        toggle.addEventListener('click', openSidebar);
+        closeButton?.addEventListener('click', closeSidebar);
+        backdrop.addEventListener('click', closeSidebar);
+
+        let touchStartX = 0;
+        sidebar.addEventListener('touchstart', (event) => {
+            touchStartX = event.changedTouches[0]?.clientX || 0;
+        }, { passive: true });
+        sidebar.addEventListener('touchend', (event) => {
+            const endX = event.changedTouches[0]?.clientX || touchStartX;
+            if (touchStartX - endX > 70) closeSidebar();
+        }, { passive: true });
 
         $('#file-tree').on('click', 'a', function () {
             if (window.innerWidth <= 576) {
                 const nodeId = $(this).closest('li').attr('id');
                 const node = tree.jstree('get_node', nodeId);
                 if (node?.type === 'file') {
-                    sidebar.classList.remove('sidebar-open');
-                    backdrop.classList.remove('visible');
+                    closeSidebar();
                     setTimeout(() => {
                         if (vditor) vditor.resize();
                         if (aceEditor) aceEditor.resize();
@@ -731,24 +813,60 @@ $(function () {
     });
 
     // ====== 右键菜单 ======
+    function showNodeActions(node, x = 0, y = 0, mobile = false) {
+        if (!node) return;
+        tree.jstree('deselect_all');
+        tree.jstree('select_node', node.id);
+        contextNode = node;
+
+        const isFolder = node.type !== 'file';
+        document.getElementById('ctx-folder-items').style.display = isFolder ? 'block' : 'none';
+        const menu = document.getElementById('context-menu');
+        menu.classList.toggle('mobile-sheet', mobile);
+        menu.style.display = 'block';
+        if (!mobile) {
+            if (x + 180 > window.innerWidth) x = window.innerWidth - 190;
+            if (y + 160 > window.innerHeight) y = window.innerHeight - 170;
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+        }
+    }
+
     $('#file-tree').on('contextmenu', '.jstree-anchor', function (e) {
         e.preventDefault(); e.stopPropagation();
         const nodeId = $(this).closest('li').attr('id');
         const node = tree.jstree('get_node', nodeId);
-        if (!node) return;
-        tree.jstree('select_node', nodeId);
-        contextNode = node;
+        showNodeActions(node, e.clientX, e.clientY, window.innerWidth <= 768);
+    });
 
-        // 根据节点类型显隐菜单项
-        const isFolder = node.type !== 'file';
-        document.getElementById('ctx-folder-items').style.display = isFolder ? 'block' : 'none';
+    let longPressTimer = null;
+    let longPressTriggered = false;
+    $('#file-tree').on('touchstart', '.jstree-anchor', function () {
+        const anchor = this;
+        longPressTriggered = false;
+        longPressTimer = setTimeout(() => {
+            const nodeId = $(anchor).closest('li').attr('id');
+            showNodeActions(tree.jstree('get_node', nodeId), 0, 0, true);
+            longPressTriggered = true;
+        }, 550);
+    });
+    $('#file-tree').on('touchmove touchcancel', '.jstree-anchor', () => clearTimeout(longPressTimer));
+    $('#file-tree').on('touchend', '.jstree-anchor', function (event) {
+        clearTimeout(longPressTimer);
+        if (longPressTriggered) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
+    });
 
-        const menu = document.getElementById('context-menu');
-        menu.style.display = 'block';
-        let x = e.clientX, y = e.clientY;
-        if (x + 180 > window.innerWidth) x = window.innerWidth - 190;
-        if (y + 120 > window.innerHeight) y = window.innerHeight - 130;
-        menu.style.left = x + 'px'; menu.style.top = y + 'px';
+    $('#mobile-actions-toggle').on('click', function (event) {
+        event.stopPropagation();
+        const selected = tree.jstree('get_selected', true);
+        if (!selected.length) {
+            alert('请先从文件列表选择文件或文件夹');
+            return;
+        }
+        showNodeActions(selected[0], 0, 0, true);
     });
 
     $('#context-menu').on('click', '.ctx-item', function () {

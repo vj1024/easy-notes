@@ -10,6 +10,7 @@ A simple and secure web-based note editor built with Go and Gin framework. Featu
 - **Dual Web Editors** - Vditor for Markdown and Ace for other text formats
 - **Safe Storage** - Symlink-safe paths, atomic saves, and a 50 MB request limit
 - **Offline Embedded Assets** - Application and third-party assets are embedded in the binary
+- **Mobile Ready** - Touch file actions, responsive editors, offline shell, and installable PWA
 
 Embedded editor dependencies are pinned for reproducible offline builds:
 

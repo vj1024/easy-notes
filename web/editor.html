@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EasyNotes</title>
     <link rel="icon" href="/favicon.ico">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#5645d4">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="/assets/vendor/jstree/themes/default/style.min.css">
     <link rel="stylesheet" href="/assets/vendor/vditor/dist/index.css">
     <link rel="stylesheet" href="/assets/css/editor.css">
@@ -23,7 +26,10 @@
                     <div class="sidebar-brand-logo">📝</div>
                     <div class="sidebar-brand-name">EasyNotes</div>
                 </div>
-                <button class="theme-toggle" id="theme-toggle" title="切换主题 (亮/暗/自动)">☀</button>
+                <div class="sidebar-header-buttons">
+                    <button class="theme-toggle" id="theme-toggle" title="切换主题 (亮/暗/自动)">☀</button>
+                    <button class="sidebar-close" id="sidebar-close" title="关闭文件列表" aria-label="关闭文件列表">×</button>
+                </div>
             </div>
             <div class="sidebar-actions">
                 <button class="action-btn" id="btn-new-file" title="新建文件">
@@ -34,6 +40,9 @@
                 </button>
                 <button class="action-btn danger" id="btn-delete" title="删除">
                     <span class="icon">🗑</span>
+                </button>
+                <button class="action-btn install-action" id="btn-install" title="安装到主屏幕" hidden>
+                    <span class="icon">⬇</span> 安装
                 </button>
             </div>
             <div class="search-box">
@@ -59,6 +68,7 @@
                 </div>
             </div>
             <div class="save-indicator" id="save-indicator"></div>
+            <button class="mobile-actions-toggle" id="mobile-actions-toggle" title="文件操作" aria-label="文件操作">⋮</button>
         </div>
         <div class="editor-content">
             <div id="vditor-container">

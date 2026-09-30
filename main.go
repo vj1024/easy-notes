@@ -141,6 +141,8 @@ func newRouter() *gin.Engine {
 	router.GET("/editor", serveEmbeddedFile(webFiles, "editor.html"))
 	router.GET("/login", serveEmbeddedFile(webFiles, "login.html"))
 	router.GET("/favicon.ico", serveEmbeddedFile(webFiles, "favicon.ico"))
+	router.GET("/manifest.webmanifest", serveEmbeddedFile(webFiles, "manifest.webmanifest"))
+	router.GET("/sw.js", serveEmbeddedFile(webFiles, "sw.js"))
 	router.GET("/assets/*filepath", gin.WrapH(http.StripPrefix("/assets", assetFiles)))
 	router.POST("/api/login", loginHandler)
 	router.GET("/api/check-auth", checkAuthHandler)

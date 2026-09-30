@@ -119,6 +119,8 @@ func TestEmbeddedEditorAssetsAreServedLocally(t *testing.T) {
 
 	for _, path := range []string{
 		"/editor",
+		"/manifest.webmanifest",
+		"/sw.js",
 		"/assets/css/editor.css",
 		"/assets/js/editor.js",
 		"/assets/vendor/jquery/jquery.min.js",

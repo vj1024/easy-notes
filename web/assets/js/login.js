@@ -1,3 +1,7 @@
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+        }
+
         // 主题切换
         const THEME_KEY = 'easynotes-theme';
         function getStoredTheme() { return localStorage.getItem(THEME_KEY) || 'auto'; }
