@@ -437,7 +437,8 @@ $(function () {
 
         try {
             const modelist = ace.require('ace/ext/modelist');
-            aceEditor.session.setMode(modelist.getModeForPath(filePath).mode);
+            const detectedMode = modelist.getModeForPath(filePath)?.mode;
+            aceEditor.session.setMode(detectedMode || 'ace/mode/text');
         } catch (e) {
             aceEditor.session.setMode('ace/mode/text');
         }
@@ -577,7 +578,7 @@ $(function () {
         });
     })();
 
-    // ====== 新建 / 删除功能 ======
+    // ====== 新建 / 重命名 / 删除功能 ======
     let contextNode = null;
 
     window.closeModal = function (id) { document.getElementById(id).classList.remove('active'); };
@@ -640,6 +641,53 @@ $(function () {
             .catch((e) => { if (e.status !== 401) { const m = e.responseJSON?.message || '创建失败'; alert(m); } });
     });
 
+    function openRenameModal(node) {
+        const filePath = buildFilePath(node);
+        if (!filePath) { alert('无法重命名根目录'); return; }
+        const input = document.getElementById('input-rename');
+        input.value = node.text;
+        input.dataset.path = filePath;
+        openModal('modal-rename');
+        setTimeout(() => { input.focus(); input.select(); }, 100);
+    }
+
+    $('#btn-confirm-rename').on('click', function () {
+        const input = document.getElementById('input-rename');
+        const oldPath = input.dataset.path;
+        const newName = input.value.trim();
+        if (!oldPath || !newName) { input.style.borderColor = 'var(--semantic-error)'; return; }
+        input.style.borderColor = '';
+
+        const rename = () => authAjax({
+            url: BASE_URL + '/api/rename',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ path: oldPath, newName: newName })
+        }).then((data) => {
+            closeModal('modal-rename');
+            if (currentFile && (currentFile.path === oldPath || currentFile.path.startsWith(oldPath + '/'))) {
+                const suffix = currentFile.path.slice(oldPath.length);
+                currentFile.path = data.path + suffix;
+                if (!suffix) currentFile.name = newName;
+                updateBreadcrumb(currentFile.path, false);
+            }
+            tree.jstree(true).refresh();
+            $('#status-left').text('重命名成功');
+        });
+
+        const affectsOpenFile = currentFile &&
+            (currentFile.path === oldPath || currentFile.path.startsWith(oldPath + '/'));
+        const saveBeforeRename = affectsOpenFile && isDirty ? saveCurrentFile() : Promise.resolve();
+        saveBeforeRename
+            .then(rename)
+            .catch((e) => {
+                if (e?.status !== 401) {
+                    const message = e?.responseJSON?.message || '重命名失败';
+                    alert(message);
+                }
+            });
+    });
+
     function confirmAndDelete(node) {
         const filePath = buildFilePath(node);
         if (!filePath) { alert('无法删除根目录'); return; }
@@ -672,6 +720,7 @@ $(function () {
     // 回车确认
     $('#input-new-file').on('keydown', (e) => { if (e.key === 'Enter') $('#btn-confirm-new-file').click(); });
     $('#input-new-folder').on('keydown', (e) => { if (e.key === 'Enter') $('#btn-confirm-new-folder').click(); });
+    $('#input-rename').on('keydown', (e) => { if (e.key === 'Enter') $('#btn-confirm-rename').click(); });
 
     // 弹窗外部关闭
     $('.modal-overlay').on('click', function (e) { if (e.target === this) closeModal(this.id); });
@@ -718,6 +767,8 @@ $(function () {
             const input = document.getElementById('input-new-folder');
             input.value = ''; input.dataset.dir = dir;
             openModal('modal-new-folder'); setTimeout(() => input.focus(), 100);
+        } else if (action === 'rename') {
+            openRenameModal(contextNode);
         } else if (action === 'delete') {
             confirmAndDelete(contextNode);
         }

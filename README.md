@@ -102,6 +102,7 @@ downloaded normally.
 - `DELETE /api/files/*path` - Delete a file or non-root folder recursively
 - `POST /api/mkdir` - Create a folder (`{"path":"folder"}`)
 - `POST /api/create-file` - Create a file (`{"path":"note.txt","content":""}`)
+- `POST /api/rename` - Rename a file or folder (`{"path":"old.txt","newName":"new.txt"}`)
 - `POST /api/logout` - Logout
 
 All authenticated request bodies are limited to 50 MB. Oversized bodies return

@@ -157,6 +157,7 @@ func newRouter() *gin.Engine {
 		authGroup.DELETE("/api/files/*path", handleFileDelete)
 		authGroup.POST("/api/mkdir", handleMkdir)
 		authGroup.POST("/api/create-file", handleCreateFile)
+		authGroup.POST("/api/rename", handleRename)
 		authGroup.POST("/api/logout", logoutHandler)
 	}
 

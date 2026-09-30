@@ -204,11 +204,6 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 			return nil
 		}
 
-		// 只搜索支持的文本格式文件
-		if !isSupportedTextFile(info.Name()) {
-			return nil
-		}
-
 		// 检查文件名是否包含所有关键字
 		filenameMatched := true
 		for _, keyword := range keywords {
@@ -220,7 +215,7 @@ func performSearch(c *gin.Context, rootPath, searchTerm string) {
 
 		// 仅当搜索词以 / 开头且文件名未匹配时，才读取文件内容。
 		contentMatched := false
-		if searchContent && !filenameMatched {
+		if searchContent && !filenameMatched && isSupportedTextFile(info.Name()) {
 			content, err := os.ReadFile(path)
 			if err != nil {
 				// 如果无法读取文件内容，跳过
@@ -435,6 +430,12 @@ type CreateFileRequest struct {
 	Content string `json:"content"`                 // 初始内容
 }
 
+// RenameRequest 表示文件或目录的重命名请求。
+type RenameRequest struct {
+	Path    string `json:"path" binding:"required"`
+	NewName string `json:"newName" binding:"required"`
+}
+
 // handleMkdir 创建目录
 func handleMkdir(c *gin.Context) {
 	var req MkdirRequest
@@ -522,6 +523,68 @@ func handleCreateFile(c *gin.Context) {
 		Success: true,
 		Message: "文件创建成功",
 	})
+}
+
+// handleRename 在原目录内重命名文件或文件夹。
+func handleRename(c *gin.Context) {
+	var req RenameRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		respondBodyError(c, err, "请求参数错误")
+		return
+	}
+
+	newName := strings.TrimSpace(req.NewName)
+	if newName == "" || newName == "." || newName == ".." ||
+		strings.ContainsAny(newName, `/\\`) {
+		c.JSON(http.StatusBadRequest, DirectoryResponse{Success: false, Message: "新名称不合法"})
+		return
+	}
+
+	sourcePath, err := safePath(req.Path)
+	if err != nil {
+		c.JSON(http.StatusForbidden, DirectoryResponse{Success: false, Message: "非法路径: " + err.Error()})
+		return
+	}
+	if strings.Trim(strings.TrimSpace(req.Path), "/") == "" {
+		c.JSON(http.StatusBadRequest, DirectoryResponse{Success: false, Message: "不能重命名根目录"})
+		return
+	}
+	if _, err := os.Stat(sourcePath); err != nil {
+		if os.IsNotExist(err) {
+			c.JSON(http.StatusNotFound, DirectoryResponse{Success: false, Message: "文件或目录不存在"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, DirectoryResponse{Success: false, Message: "访问失败: " + err.Error()})
+		return
+	}
+
+	targetPath, err := safePath(filepath.Join(filepath.Dir(strings.TrimPrefix(req.Path, "/")), newName))
+	if err != nil {
+		c.JSON(http.StatusForbidden, DirectoryResponse{Success: false, Message: "非法路径: " + err.Error()})
+		return
+	}
+	if sourcePath == targetPath {
+		c.JSON(http.StatusOK, DirectoryResponse{Path: filepath.ToSlash(strings.TrimPrefix(req.Path, "/")), Success: true, Message: "名称未变更"})
+		return
+	}
+	if _, err := os.Lstat(targetPath); err == nil {
+		c.JSON(http.StatusConflict, DirectoryResponse{Success: false, Message: "同名文件或目录已存在"})
+		return
+	} else if !os.IsNotExist(err) {
+		c.JSON(http.StatusInternalServerError, DirectoryResponse{Success: false, Message: "检查目标路径失败: " + err.Error()})
+		return
+	}
+	if err := os.Rename(sourcePath, targetPath); err != nil {
+		c.JSON(http.StatusInternalServerError, DirectoryResponse{Success: false, Message: "重命名失败: " + err.Error()})
+		return
+	}
+
+	relPath, err := filepath.Rel(baseDir, targetPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, DirectoryResponse{Success: false, Message: "解析新路径失败"})
+		return
+	}
+	c.JSON(http.StatusOK, DirectoryResponse{Path: filepath.ToSlash(relPath), Success: true, Message: "重命名成功"})
 }
 
 func uploadFile(c *gin.Context, fullPath, requestPath string) {

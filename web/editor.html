@@ -83,6 +83,7 @@
         <div class="ctx-item" data-action="new-folder">📁 新建文件夹</div>
         <div class="ctx-divider"></div>
     </div>
+    <div class="ctx-item" data-action="rename">✏️ 重命名</div>
     <div class="ctx-item danger" data-action="delete">🗑 删除</div>
 </div>
 
@@ -106,6 +107,18 @@
         <div class="modal-actions">
             <button class="btn-cancel" onclick="closeModal('modal-new-folder')">取消</button>
             <button class="btn-confirm" id="btn-confirm-new-folder">创建</button>
+        </div>
+    </div>
+</div>
+
+<!-- 重命名弹窗 -->
+<div class="modal-overlay" id="modal-rename">
+    <div class="modal">
+        <h3>重命名</h3>
+        <input type="text" id="input-rename" placeholder="输入新名称" autocomplete="off">
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal('modal-rename')">取消</button>
+            <button class="btn-confirm" id="btn-confirm-rename">确定</button>
         </div>
     </div>
 </div>
