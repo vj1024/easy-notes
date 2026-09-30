@@ -863,6 +863,13 @@
             .resize-handle { display: none !important; }
         }
 
+        /* 手机端优先保留 Markdown 编辑空间。 */
+        @media (max-width: 576px) {
+            #vditor .vditor-toolbar {
+                display: none !important;
+            }
+        }
+
         @media (max-width: 400px) {
             .sidebar-actions { flex-wrap: wrap; }
             .modal { min-width: 300px; padding: 20px; }
