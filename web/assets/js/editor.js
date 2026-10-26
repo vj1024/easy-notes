@@ -442,6 +442,7 @@ $(function () {
                 current: getVditorThemeName(resolvedTheme),
                 path: '/assets/vendor/vditor/dist/css/content-theme',
             },
+            preview: { markdown: { sanitize: true } },
             outline: { enable: !isMobile, position: 'right' },
             input: function () {
                 markDirty();
