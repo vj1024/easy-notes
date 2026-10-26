@@ -14,7 +14,7 @@ A simple and secure web-based note editor built with Go and Gin framework. Featu
 
 Embedded editor dependencies are pinned for reproducible offline builds:
 
-- Vditor `3.11.2` (current official npm `latest`)
+- Vditor `4.0.1` (current official npm `latest`)
 - Ace `1.32.6`
 - jsTree `3.3.12`
 - jQuery `3.6.0`
